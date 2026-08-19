@@ -74,11 +74,11 @@ export default function RegisterDevice({ device, wallet, connection, network, on
   if (!device) {
     return (
       <div className="mx-auto w-full max-w-md p-4">
-        <div className="rounded-2xl border border-axis-border bg-axis-panel p-6 text-center">
-          <p className="text-sm text-slate-400">Сначала отсканируйте QR устройства.</p>
+        <div className="rounded-2xl border border-edge bg-panel p-6 text-center">
+          <p className="text-sm text-mut">Сначала отсканируйте QR устройства.</p>
           <button
             onClick={onBack}
-            className="mt-4 rounded-xl bg-axis-accent px-4 py-2 text-sm font-semibold text-slate-950"
+            className="mt-4 rounded-xl bg-axis-accent px-4 py-2 text-sm font-semibold text-white"
           >
             К сканированию
           </button>
@@ -259,7 +259,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
         <button
           onClick={onBack}
           disabled={running}
-          className="rounded-xl border border-axis-border px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 disabled:opacity-40"
+          className="rounded-xl border border-edge px-3 py-2 text-sm text-mut hover:bg-soft disabled:opacity-40"
         >
           ← Назад
         </button>
@@ -267,15 +267,15 @@ export default function RegisterDevice({ device, wallet, connection, network, on
         <span className="w-16" />
       </div>
 
-      <div className="rounded-2xl border border-axis-border bg-axis-panel p-4">
-        <p className="text-xs uppercase tracking-wide text-slate-500">Устройство из QR</p>
+      <div className="rounded-2xl border border-edge bg-panel p-4">
+        <p className="text-xs uppercase tracking-wide text-subtle">Устройство из QR</p>
         <p className="mt-1 break-all font-mono text-sm text-axis-accent">{deviceId.toBase58()}</p>
-        <p className="mt-1 text-[11px] text-slate-500">schema: {device.payload.schema}</p>
-        <p className="mt-1 break-all text-[11px] text-slate-500">Producer PDA: {producer.toBase58()}</p>
+        <p className="mt-1 text-[11px] text-subtle">schema: {device.payload.schema}</p>
+        <p className="mt-1 break-all text-[11px] text-subtle">Producer PDA: {producer.toBase58()}</p>
       </div>
 
       {status && (
-        <div className="rounded-xl border border-axis-border bg-axis-panel px-4 py-2 text-xs text-slate-300">
+        <div className="rounded-xl border border-edge bg-panel px-4 py-2 text-xs text-mut">
           On-chain статус: <span className="font-semibold text-white">{status.state}</span>
           {status.owner && status.owner !== wallet.publicKey.toBase58() && (
             <span className="mt-1 block text-axis-danger">
@@ -286,7 +286,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
       )}
 
       {outcome && (
-        <div className="rounded-2xl border border-axis-border bg-axis-panel p-4">
+        <div className="rounded-2xl border border-edge bg-panel p-4">
           <h2 className={`text-sm font-bold ${allOk ? "text-axis-success" : "text-axis-warn"}`}>
             {allOk ? "Устройство зарегистрировано и активно! 🎉" : "Регистрация завершилась с ошибками"}
           </h2>
@@ -298,15 +298,15 @@ export default function RegisterDevice({ device, wallet, connection, network, on
                     s.status === "ok"
                       ? "text-axis-success"
                       : s.status === "skip"
-                        ? "text-slate-500"
+                        ? "text-subtle"
                         : s.status === "error"
                           ? "text-axis-danger"
-                          : "text-slate-400"
+                          : "text-mut"
                   }
                 >
                   {s.status === "ok" ? "✅" : s.status === "skip" ? "⏭" : s.status === "error" ? "❌" : "⏳"}
                 </span>
-                <span className="text-slate-300">{s.label}</span>
+                <span className="text-mut">{s.label}</span>
                 {s.txid && (
                   <a
                     className="ml-auto break-all font-mono text-[10px] text-axis-accent"
@@ -327,7 +327,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
       {allOk && (
         <button
           onClick={() => onDone(deviceId.toBase58())}
-          className="rounded-2xl bg-axis-success px-4 py-3 font-semibold text-slate-950 hover:brightness-110"
+          className="rounded-2xl bg-axis-success px-4 py-3 font-semibold text-white hover:brightness-110"
         >
           В дашборд
         </button>
@@ -337,19 +337,19 @@ export default function RegisterDevice({ device, wallet, connection, network, on
           <button
             onClick={findDevice}
             disabled={checking || running}
-            className="rounded-xl border border-axis-border px-4 py-3 text-sm font-medium text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+            className="rounded-xl border border-edge px-4 py-3 text-sm font-medium text-mut hover:bg-soft disabled:opacity-50"
           >
             {checking ? "Поиск устройства…" : "Найти устройство по сети"}
           </button>
 
           {signerInfo && (
-            <div className="rounded-xl border border-axis-success/40 bg-axis-panel px-4 py-2 text-xs text-slate-300">
+            <div className="rounded-xl border border-axis-success/40 bg-panel px-4 py-2 text-xs text-mut">
               Устройство найдено: <span className="font-mono">{signerInfo.deviceId}</span>
               {signerInfo.firmware ? ` · fw ${signerInfo.firmware}` : ""}
             </div>
           )}
           {!signerInfo && (
-            <p className="text-center text-[11px] text-slate-600">
+            <p className="text-center text-[11px] text-subtle">
               Не нашли? Устройство доступно по mDNS axis-XXXX.local после настройки Wi-Fi
               (прошивка с Captive Portal). Или используйте ручной режим через Serial.
             </p>
@@ -358,7 +358,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
           <button
             onClick={runAuto}
             disabled={!signerInfo || running}
-            className="rounded-2xl bg-axis-accent px-4 py-3 font-semibold text-slate-950 hover:brightness-110 disabled:opacity-50"
+            className="rounded-2xl bg-axis-accent px-4 py-3 font-semibold text-white hover:brightness-110 disabled:opacity-50"
           >
             {running ? "Регистрация…" : "Регистрировать автоматически"}
           </button>
@@ -366,33 +366,33 @@ export default function RegisterDevice({ device, wallet, connection, network, on
           <button
             onClick={generateManualMessages}
             disabled={running}
-            className="rounded-xl border border-axis-border px-4 py-2 text-sm text-slate-400 hover:bg-slate-800 disabled:opacity-40"
+            className="rounded-xl border border-edge px-4 py-2 text-sm text-mut hover:bg-soft disabled:opacity-40"
           >
             Ручной режим (Serial SIGN)
           </button>
 
           {showManual && (
-            <div className="flex flex-col gap-3 rounded-2xl border border-axis-border bg-axis-panel p-4">
-              <p className="text-xs text-slate-400">
+            <div className="flex flex-col gap-3 rounded-2xl border border-edge bg-panel p-4">
+              <p className="text-xs text-mut">
                 В мониторе ESP32 выполните <code className="text-axis-accent">SIGN {"<hex>"}</code> для
                 каждого сообщения и вставьте подписи (sig_hex) ниже.
               </p>
               {manualMsgs.map((m) => (
-                <div key={m.kind} className="rounded-xl bg-black/40 p-3">
-                  <p className="text-[11px] font-semibold uppercase text-slate-500">{m.kind}</p>
-                  <p className="mt-1 break-all font-mono text-[10px] text-slate-400">SIGN {m.hex}</p>
+                <div key={m.kind} className="rounded-xl bg-soft p-3">
+                  <p className="text-[11px] font-semibold uppercase text-subtle">{m.kind}</p>
+                  <p className="mt-1 break-all font-mono text-[10px] text-mut">SIGN {m.hex}</p>
                   <input
                     value={manualSigs[m.kind] ?? ""}
                     onChange={(e) => setManualSigs((p) => ({ ...p, [m.kind]: e.target.value.trim() }))}
                     placeholder="sig_hex (64 байта / 128 символов)"
-                    className="mt-2 w-full rounded-lg border border-axis-border bg-black/40 p-2 font-mono text-[11px] text-slate-200 outline-none focus:border-axis-accent"
+                    className="mt-2 w-full rounded-lg border border-edge bg-soft p-2 font-mono text-[11px] text-ink outline-none focus:border-axis-accent"
                   />
                 </div>
               ))}
               <button
                 onClick={runManual}
                 disabled={running}
-                className="rounded-xl bg-axis-accent px-4 py-3 font-semibold text-slate-950 hover:brightness-110 disabled:opacity-50"
+                className="rounded-xl bg-axis-accent px-4 py-3 font-semibold text-white hover:brightness-110 disabled:opacity-50"
               >
                 {running ? "Отправка…" : "Отправить с ручными подписями"}
               </button>
@@ -400,7 +400,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
           )}
 
           {error && (
-            <p className="rounded-xl border border-axis-danger/40 bg-axis-panel p-3 text-xs text-axis-danger">
+            <p className="rounded-xl border border-axis-danger/40 bg-panel p-3 text-xs text-axis-danger">
               {error}
             </p>
           )}

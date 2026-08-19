@@ -1,13 +1,56 @@
 @import "tailwindcss";
 
+/* Классовая тёмная/светлая тема (html.light / html.dark), Tailwind v4. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-axis-bg: #0b1020;
-  --color-axis-panel: #111a33;
-  --color-axis-border: #1e293b;
-  --color-axis-accent: #22d3ee;
-  --color-axis-success: #34d399;
-  --color-axis-warn: #fbbf24;
-  --color-axis-danger: #f87171;
+  /* Акцентные цвета — переключаются темой через CSS-переменные */
+  --color-axis-accent: var(--c-accent);
+  --color-axis-success: var(--c-success);
+  --color-axis-warn: var(--c-warn);
+  --color-axis-danger: var(--c-danger);
+}
+
+@theme inline {
+  /* Семантические токены (flip по .dark/.light) */
+  --color-surface: var(--c-surface);
+  --color-panel: var(--c-panel);
+  --color-edge: var(--c-edge);
+  --color-ink: var(--c-ink);
+  --color-mut: var(--c-mut);
+  --color-subtle: var(--c-subtle);
+  --color-soft: var(--c-soft);
+}
+
+:root,
+html.dark {
+  color-scheme: dark;
+  --c-surface: #0b1020;
+  --c-panel: #111a33;
+  --c-edge: #1e293b;
+  --c-ink: #f1f5f9;
+  --c-mut: #94a3b8;
+  --c-subtle: #64748b;
+  --c-soft: rgba(148, 163, 184, 0.12);
+  --c-accent: #22d3ee;
+  --c-success: #34d399;
+  --c-warn: #fbbf24;
+  --c-danger: #f87171;
+}
+
+html.light {
+  color-scheme: light;
+  --c-surface: #eef2f7;
+  --c-panel: #ffffff;
+  --c-edge: #d8e0ea;
+  --c-ink: #0f172a;
+  --c-mut: #475569;
+  --c-subtle: #94a3b8;
+  --c-soft: rgba(71, 85, 105, 0.1);
+  --c-accent: #0891b2;
+  --c-success: #059669;
+  --c-warn: #d97706;
+  --c-danger: #dc2626;
 }
 
 html,
@@ -17,19 +60,112 @@ body,
 }
 
 body {
-  @apply bg-axis-bg text-slate-100 antialiased;
+  @apply bg-surface text-ink antialiased;
   overscroll-behavior-y: none;
 }
 
-/* Тёмный скроллбар для десктопа */
+/* Скроллбар, адаптивный к теме */
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--c-edge);
   border-radius: 8px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Анимация рамки QR-сканера */
+@keyframes scanpulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(52, 211, 153, 0);
+  }
+}
+.scan-success {
+  animation: scanpulse 0.9s ease-out 2;
+}
+
+/* Пульсация текущей мощности (энергетический дашборд) */
+@keyframes powerPulse {
+  0%,
+  100% {
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.35);
+  }
+  50% {
+    text-shadow: 0 0 26px rgba(34, 211, 238, 0.85);
+  }
+}
+.power-pulse {
+  animation: powerPulse 2s ease-in-out infinite;
+}
+
+/* Свечение точки «генерирует» */
+@keyframes dotPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(52, 211, 153, 0);
+  }
+}
+.dot-pulse {
+  animation: dotPulse 1.6s ease-out infinite;
+}
+
+/* «Капли» токенов при начислении SRC */
+@keyframes dripFall {
+  0% {
+    transform: translateY(-10px) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  100% {
+    transform: translateY(30px) scale(0.8);
+    opacity: 0;
+  }
+}
+.drip-token {
+  animation: dripFall 1.4s ease-in forwards;
+}
+
+/* Вращающаяся орбита для placeholder-графика */
+@keyframes orbitSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.placeholder-orbit {
+  animation: orbitSpin 6s linear infinite;
+}
+
+/* Свечение счётчика при росте */
+@keyframes countGlow {
+  from {
+    filter: brightness(1.6);
+    opacity: 0.6;
+  }
+  to {
+    filter: brightness(1);
+    opacity: 1;
+  }
+}
+.count-glow {
+  animation: countGlow 1.2s ease-out;
+}
+
+/* Скрыть нативные контролы видео html5-qrcode */
+#qr-reader video {
+  border-radius: 1rem;
+  object-fit: cover;
+}
+

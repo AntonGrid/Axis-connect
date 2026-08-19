@@ -7,7 +7,14 @@
   "scripts": {
     "dev": "vite",
     "dev:https": "HTTPS=1 vite",
+    "dev:phone": "npm run preview:phone",
+    "dev:phone:hot": "concurrently \"vite --host 0.0.0.0\" \"npx localtunnel --port 5173\"",
+    "dev:phone:cf": "concurrently \"vite --host 0.0.0.0\" \"npx cloudflared tunnel --url http://127.0.0.1:5173\"",
+    "preview:phone": "npm run build && concurrently \"vite preview --host 0.0.0.0 --port 4173\" \"npx localtunnel --port 4173\"",
     "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "preview": "vite preview",
     "sync:idl": "cp ../ENRG/target/idl/enrg_mvp.json src/data/enrg_mvp.json",
     "smoke": "vite build --config scripts/vite.smoke.config.ts && node /tmp/axis-smoke-out/smoke.cjs",
@@ -19,17 +26,27 @@
     "buffer": "^6.0.3",
     "html5-qrcode": "^2.3.8",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "recharts": "^3.10.1"
   },
   "devDependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.5",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.0.5",
+    "concurrently": "^10.0.5",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9.3",
-    "vite": "^8.2.1"
+    "vite": "^8.2.1",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^4.1.11"
   }
 }

@@ -5,25 +5,47 @@
 
 ## Возможности
 
-- **Экран 1 — Онбординг**: автоматическое создание локального **некастодиального**
-  Solana-кошелька (Ed25519 Keypair) с хранением **только** в `localStorage`
-  (+ восстановление из base58-секрета). Дашборд с балансом SOL и SRC/ENRG
-  (mint PDA `[b"token-mint"]`), airdrop на devnet/localnet.
-- **Экран 2 — Сканирование**: камера через `html5-qrcode`; из QR извлекается
-  `{ "deviceId": "...", "schema": "axis-energy-v1" }`. `deviceId` принимается в
-  base58 или `0x`+hex, нормализуется в Solana PublicKey. Есть ручной ввод JSON.
-- **Экран 3 — Регистрация**: on-chain флоу `register_device → claim_device →
-  provision_device → activate_device` (ADR-0005). Подписи устройства получаются
-  автоматически через локальный HTTP-signer прошивки (mDNS `axis-device-XXXX.local:8080`,
-  модернизация Phase 3), fallback — ручной ввод подписей из Serial `SIGN`.
-  Транзакции строятся вручную на `@solana/web3.js` (дискриминаторы и порядок
-  аккаунтов — из IDL `enrg_mvp`, ed25519-precompile через sysvar Instructions).
-- **`lib/manifestVerification.ts`**: модуль издателя манифестов
-  (`register_manifest_verification`, обновлённые аккаунты Антона: `registry` PDA +
-  `instructions` sysvar). ⚠️ Инструкция требует прав `oracle_authority` — это
-  admin/издательский инструмент, НЕ шаг пользовательского онбординга.
-- **PWA**: рукописный service worker (network-first + кэш-fallback), manifest,
-  иконки.
+- **Экран 1 — Онбординг**: некастодиальный Solana-кошелёк (Ed25519 Keypair,
+  хранение **только** в `localStorage`), теглайн «Подключите устройство за
+  10 секунд…», создание/импорт/бэкап.
+- **Экран 2 — Энергетический дашборд** (главная метрика — ЭНЕРГИЯ, не крипто):
+  hero «Выработано энергии» (кВт·ч) с анимацией роста + «начислено SRC»;
+  текущая мощность с пульсацией + график 24ч (Recharts); SOL скрыт и виден
+  только при нехватке газа; устройства — интерактивные карточки с прогресс-баром
+  выработки за сегодня (онлайн/оффлайн по mDNS); SRC отображается как
+  «накопленная энергия» (≈ кВт·ч) с анимацией «капающих» токенов; история
+  начислений человеческими метками («+5.2 SRC за 2.3 кВт·ч») без хешей.
+- **Экран 3 — Сканирование**: рамка для наведения, зелёная подсветка при
+  успехе, превью «Устройство: ESP32-XXXX» + кнопка «Подключить»; ручной ввод.
+- **Экран устройства**: публичный ключ, текущая мощность, всего/за месяц
+  энергии, ≈ начислено SRC, on-chain статус (EnergyProducer PDA), отключение
+  с подтверждением.
+- **Настройки**: копирование адреса, экспорт приватного ключа (с
+  предупреждением), сеть (Devnet/Mainnet/Local), **переключатель темы**
+  (тёмная/светлая), удаление кошелька.
+- **Регистрация**: on-chain `register_device → claim → provision → activate`
+  (ADR-0005); подписи через локальный HTTP-signer прошивки (mDNS) или ручной
+  режим (Serial `SIGN`). `register_manifest_verification` — admin-модуль.
+- **ENRG-интеграция**: `getEnergyProducer` (полный borsh-парсер),
+  `claim_rewards` (staking), IDL `enrg_mvp` синхронизируется (`npm run sync:idl`).
+- **PWA**: `vite-plugin-pwa` (иконки 72–512 + maskable, workbox-offline-кэш,
+  авто-регистрация SW), стаб push-уведомлений.
+
+## Тесты
+
+- **Vitest (unit/component)** — 48 тестов: wallet, qr, borsh, encoding,
+  energyHistory, solana.formatAtomic, enrgTx (сериализация сверяется с Anchor
+  из IDL **байт-в-байт**), parseEnergyProducer, а также Onboarding, Dashboard,
+  Scanner, Settings.
+- **Playwright E2E** — «Создать кошелёк → Отсканировать QR → Зарегистрировать
+  устройство» (RPC devnet мокается route-перехватом, детерминированно).
+- `npm run smoke` — эталонная сверка транзакций с @coral-xyz/anchor.
+
+> Тестовые хаки: в `src/test/setup.ts` восстановлены Node-`Uint8Array`/`Buffer`
+> (jsdom подменяет их на другой realm — это ломает web3.js) и заменён
+> `PublicKey.findProgramAddress*` на реплику алгоритма с нативной проверкой
+> кривой @noble/curves (в трансформе vitest `isOnCurve` перестаёт валидировать).
+
 
 ## Запуск
 
@@ -33,14 +55,47 @@ npm install
 # Обычный dev (localhost):
 npm run dev
 
-# Dev с HTTPS — для камеры на телефоне (getUserMedia требует secure context):
+# Нативный HTTPS в dev (для прямого доступа с телефона по LAN-IP:
+# https://<LAN-IP>:5173, сначала принять самоподписанный сертификат):
 npm run dev:https
-# затем откройте на телефоне https://<LAN-IP>:5173
-# (сначала добавьте исключение самоподписанного сертификата)
 
 # Проверка типов + production-сборка:
 npm run build
+
+# Тесты:
+npm test          # Vitest: unit + компоненты (48 тестов)
+npm run test:e2e  # Playwright: «Кошелёк → QR → Регистрация» (RPC мокается)
+npm run smoke     # сериализация транзакций vs Anchor (байт-в-байт)
 ```
+
+### Тестирование с телефона / ноутбука через туннель
+
+> ⚠️ **Всегда используйте `npm run dev:phone`** (production-сборка + preview):
+> localtunnel (free-тир) рейт-лимитит параллельные запросы (429/502).
+> Vite-**dev** отдаёт каждый модуль отдельным запросом (`/src/*`,
+> `/node_modules/.vite/deps/*`) — браузер ловит 502 на модулях и манифесте.
+> Production-сборка — ~6 файлов на страницу, и лимит не срабатывает.
+
+```bash
+# ✅ РЕКОМЕНДУЕМЫЙ вариант (одна команда, всегда работает):
+npm run dev:phone
+# → сборка (~5с), затем: vite preview на :4173 + localtunnel
+# → в логе "your url is: https://<subdomain>.loca.lt" — открыть на телефоне
+```
+
+Другие варианты (для локальной сети / особых случаев):
+
+```bash
+# Горячий dev + localtunnel: НЕ использовать через free-туннель
+# (сотни модульных запросов → 502/429); подходит только для LAN-IP:
+npm run dev:phone:hot
+
+# Dev-сервер + cloudflared (HTTP/2; в некоторых WSL/сетях UDP/QUIC режется):
+npm run dev:phone:cf
+```
+
+Порты: `server` → `:5173` (dev, HMR), `preview` → `:4173` (prod-превью).
+Оба принимают произвольный `Host` туннеля (`allowedHosts: true`, только dev/preview).
 
 ## Структура
 

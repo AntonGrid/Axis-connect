@@ -9,7 +9,7 @@ import {
 import { Buffer } from "buffer";
 import enrgIdl from "../data/enrg_mvp.json";
 import { ENRG_PROGRAM_ID, OWNER_DEVICES_SEED, PRODUCER_SEED, SYSVAR_INSTRUCTIONS_ID } from "../config";
-import type { DeviceState, RegistrationOutcome, RegistrationStepId, RegistrationStepResult } from "../types";
+import type { DeviceState, EnergyProducerData, RegistrationOutcome, RegistrationStepId, RegistrationStepResult } from "../types";
 import { ascii, concatBytes, i64le, u64le } from "./borsh";
 
 // ════════════════════════════════════════════════════════════════════
@@ -170,6 +170,73 @@ export async function getDeviceStatus(
 }
 
 // ════════════════════════════════════════════════════════════════════
+//  Полный парсер EnergyProducer (state/producer.rs, все 13 полей)
+// ════════════════════════════════════════════════════════════════════
+
+const TIERS = ["Basic", "Verified", "Industrial", "Institutional"] as const;
+
+function u64At(buf: Uint8Array, offset: number): bigint {
+  const dv = new DataView(buf.buffer, buf.byteOffset + offset, 8);
+  return dv.getBigUint64(0, true);
+}
+function i64At(buf: Uint8Array, offset: number): bigint {
+  const dv = new DataView(buf.buffer, buf.byteOffset + offset, 8);
+  return dv.getBigInt64(0, true);
+}
+
+/** Сырые данные аккаунта EnergyProducer → полная структура (без Anchor). */
+export function parseEnergyProducer(data: Uint8Array, producerPda: PublicKey): EnergyProducerData {
+  // discr(8) | authority(32) | device_id(32) | nonce(8) | energy_wh(8) | ts(8)
+  // | state(1) | tier(1) | month_energy(8) | month_start(8) | claim_nonce(8)
+  // | claimed_at(8) | revoked(1) | rotated_to(32)
+  let off = 8;
+  const authority = new PublicKey(data.subarray(off, off + 32)).toBase58();
+  off += 32;
+  const deviceId = new PublicKey(data.subarray(off, off + 32)).toBase58();
+  off += 32;
+  const nonce = u64At(data, off); off += 8;
+  const energyWh = u64At(data, off); off += 8;
+  const timestamp = i64At(data, off); off += 8;
+  const state = STATE_NAMES[data[off]] ?? "Unregistered"; off += 1;
+  const tier = TIERS[data[off]] ?? "Basic"; off += 1;
+  const monthEnergyWh = u64At(data, off); off += 8;
+  const monthStartTs = i64At(data, off); off += 8;
+  const claimNonce = u64At(data, off); off += 8;
+  const claimedAt = i64At(data, off); off += 8;
+  const revoked = data[off] !== 0; off += 1;
+  const rotatedTo = new PublicKey(data.subarray(off, off + 32)).toBase58();
+
+  return {
+    authority,
+    deviceId,
+    nonce,
+    energyWh,
+    timestamp,
+    state,
+    tier,
+    monthEnergyWh,
+    monthStartTs,
+    claimNonce,
+    claimedAt,
+    revoked,
+    rotatedTo,
+    producerPda: producerPda.toBase58(),
+  };
+}
+
+/** Получить и распарсить EnergyProducer PDA (null, если аккаунта нет). */
+export async function getEnergyProducer(
+  connection: Connection,
+  programId: PublicKey,
+  deviceId: PublicKey,
+): Promise<EnergyProducerData | null> {
+  const producer = producerPdaSync(programId, deviceId);
+  const info = await connection.getAccountInfo(producer, "confirmed");
+  if (!info) return null;
+  return parseEnergyProducer(info.data, producer);
+}
+
+// ════════════════════════════════════════════════════════════════════
 //  Сборка и отправка транзакций
 // ════════════════════════════════════════════════════════════════════
 
@@ -239,6 +306,21 @@ export function buildActivateDeviceIx(
     authority: accounts.authority,
     producer: accounts.producer,
     owner_devices: accounts.ownerDevices, // имя аккаунта в IDL — owner_devices
+  }, []);
+}
+
+/**
+ * claim_rewards — вывод наград из staking-пула (инструкция существует в IDL).
+ * Без аргументов; аккаунты: stake_info (StakeInfo, writable) + authority (signer).
+ * Требует предварительно созданный StakeInfo-аккаунт (staking-флоу ENRG).
+ */
+export function buildClaimRewardsIx(
+  programId: PublicKey,
+  accounts: { stakeInfo: PublicKey; authority: PublicKey },
+): TransactionInstruction {
+  return buildIxFromIdl(programId, "claim_rewards", {
+    stake_info: accounts.stakeInfo,
+    authority: accounts.authority,
   }, []);
 }
 

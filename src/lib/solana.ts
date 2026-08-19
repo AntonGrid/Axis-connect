@@ -10,6 +10,7 @@ import {
   TOKEN_MINT_SEED,
   TOKEN_PROGRAM_ID,
 } from "../config";
+import type { TxRecord } from "../types";
 
 export function createConnection(rpcUrl: string): Connection {
   return new Connection(rpcUrl, "confirmed");
@@ -81,6 +82,61 @@ export function formatAtomic(raw: bigint): string {
   const intPart = s.slice(0, -SRC_DECIMALS) || "0";
   const frac = s.slice(-SRC_DECIMALS).replace(/0+$/, "");
   return `${negative ? "-" : ""}${intPart}${frac ? "." + frac : ""}`;
+}
+
+/**
+ * Последние `limit` начислений SRC на ATA пользователя.
+ * Реальные данные: getSignaturesForAddress(ATA) + разбор parsed-транзакций
+ * (post/pre tokenBalances). Возвращает пустой массив при ошибке/пустоте.
+ */
+export async function getRecentTokenTransfers(
+  connection: Connection,
+  owner: PublicKey,
+  mint: PublicKey,
+  limit = 5,
+): Promise<TxRecord[]> {
+  try {
+    const ata = await findAta(owner, mint);
+    const sigs = await connection.getSignaturesForAddress(ata, { limit }, "confirmed");
+    const records: TxRecord[] = [];
+
+    for (const sig of sigs) {
+      let tx;
+      try {
+        tx = await connection.getParsedTransaction(sig.signature, {
+          maxSupportedTransactionVersion: 0,
+        });
+      } catch {
+        continue;
+      }
+      if (!tx || !tx.meta) continue;
+
+      // Дельта на ATA из pre/post tokenBalances.
+      const pre = tx.meta.preTokenBalances?.find(
+        (b) => b.owner === owner.toBase58() && b.mint === mint.toBase58(),
+      );
+      const post = tx.meta.postTokenBalances?.find(
+        (b) => b.owner === owner.toBase58() && b.mint === mint.toBase58(),
+      );
+      const preAmount = pre ? BigInt(pre.uiTokenAmount.amount) : 0n;
+      const postAmount = post ? BigInt(post.uiTokenAmount.amount) : 0n;
+      const delta = postAmount - preAmount;
+      if (delta <= 0n) continue; // только начисления (не списания)
+
+      const isMint = tx.transaction.message.accountKeys.some(
+        (k) => k.pubkey.equals(mint) && k.writable,
+      );
+      records.push({
+        signature: sig.signature,
+        amount: delta,
+        timestamp: tx.blockTime ?? null,
+        source: isMint ? "mint" : "transfer",
+      });
+    }
+    return records.slice(0, limit);
+  } catch {
+    return [];
+  }
 }
 
 /**

@@ -68,4 +68,13 @@ export const STORAGE_KEYS = {
   wallet: "axis-connect.wallet.v1",
   network: "axis-connect.network.v1",
   registeredDevices: "axis-connect.devices.v1",
+  theme: "axis-connect.theme.v1",
 } as const;
+
+/** Префикс ключей истории энергии: axis-connect.energy.v1.<deviceId> */
+export const ENERGY_HISTORY_KEY_PREFIX = "axis-connect.energy.v1.";
+/** Сколько снапшотов энергии хранить на устройство (24ч при периоде 15 мин). */
+export const ENERGY_HISTORY_MAX_POINTS = 192;
+/** Период опроса устройства для снапшотов (мс) — если устройство в сети. */
+export const ENERGY_POLL_INTERVAL_MS = 15 * 60 * 1000;
+

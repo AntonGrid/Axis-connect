@@ -53,7 +53,43 @@ export type AppScreen =
   | "dashboard"
   | "scanner"
   | "register"
+  | "device"
   | "settings";
+
+export type ThemeMode = "dark" | "light";
+
+/** Точка энергоистории (локальный снапшот устройства). */
+export interface EnergyPoint {
+  ts: number; // unix ms
+  powerW: number; // текущая мощность, Вт
+}
+
+/** Запись истории начислений SRC (из RPC token-транзакций). */
+export interface TxRecord {
+  signature: string;
+  /** Дельта на ATA пользователя в атомарных единицах (>=0 начисление). */
+  amount: bigint;
+  timestamp: number | null; // unix s
+  source: "transfer" | "mint" | "unknown";
+}
+
+/** Полный on-chain EnergyProducer (state/producer.rs). */
+export interface EnergyProducerData {
+  authority: string; // base58
+  deviceId: string; // base58
+  nonce: bigint;
+  energyWh: bigint;
+  timestamp: bigint;
+  state: DeviceState;
+  tier: "Basic" | "Verified" | "Industrial" | "Institutional";
+  monthEnergyWh: bigint;
+  monthStartTs: bigint;
+  claimNonce: bigint;
+  claimedAt: bigint;
+  revoked: boolean;
+  rotatedTo: string; // base58
+  producerPda: string; // base58
+}
 
 /** Шаг регистрации устройства на Solana. */
 export type RegistrationStepId =

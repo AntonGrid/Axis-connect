@@ -1,13 +1,15 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Keypair } from "@solana/web3.js";
 import { DEFAULT_NETWORK_ID, NETWORKS, STORAGE_KEYS, networkById } from "./config";
-import type { AppScreen, NetworkConfig, QrScanResult } from "./types";
+import type { AppScreen, NetworkConfig, QrScanResult, ThemeMode } from "./types";
 import { deleteWallet, loadWallet } from "./lib/wallet";
 import { createConnection } from "./lib/solana";
+import { getTheme } from "./lib/theme";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./components/Dashboard";
 import Scanner from "./components/Scanner";
 import RegisterDevice from "./components/RegisterDevice";
+import DeviceScreen from "./components/DeviceScreen";
 import Settings from "./components/Settings";
 
 export default function App() {
@@ -21,12 +23,21 @@ export default function App() {
     }
     return networkById(DEFAULT_NETWORK_ID);
   });
+  const [theme, setTheme] = useState<ThemeMode>(() => getTheme());
   const [screen, setScreen] = useState<AppScreen>(() =>
     loadWallet() ? "dashboard" : "onboarding",
   );
   const [scan, setScan] = useState<QrScanResult | null>(null);
+  const [deviceId, setDeviceId] = useState<string | null>(null);
 
   const connection = useMemo(() => createConnection(network.rpcUrl), [network]);
+
+  // Применяем тему на <html>.
+  useEffect(() => {
+    document.documentElement.classList.toggle("light", theme === "light");
+    document.documentElement.classList.toggle("dark", theme !== "light");
+    localStorage.setItem(STORAGE_KEYS.theme, theme);
+  }, [theme]);
 
   const handleWalletCreated = useCallback((kp: Keypair) => {
     setWallet(kp);
@@ -37,12 +48,12 @@ export default function App() {
     deleteWallet();
     setWallet(null);
     setScan(null);
+    setDeviceId(null);
     setScreen("onboarding");
   }, []);
 
   const handleNetworkChange = useCallback((id: NetworkConfig["id"]) => {
-    const n = networkById(id);
-    setNetwork(n);
+    setNetwork(networkById(id));
     localStorage.setItem(STORAGE_KEYS.network, JSON.stringify(id));
   }, []);
 
@@ -51,8 +62,9 @@ export default function App() {
     setScreen("register");
   }, []);
 
-  const handleRegistrationDone = useCallback(() => {
-    setScreen("dashboard");
+  const handleOpenDevice = useCallback((id: string) => {
+    setDeviceId(id);
+    setScreen("device");
   }, []);
 
   if (!wallet) {
@@ -70,6 +82,8 @@ export default function App() {
             networks={NETWORKS}
             onConnectDevice={() => setScreen("scanner")}
             onNetworkChange={handleNetworkChange}
+            onOpenDevice={handleOpenDevice}
+            onOpenSettings={() => setScreen("settings")}
           />
         )}
         {screen === "scanner" && (
@@ -82,7 +96,14 @@ export default function App() {
             connection={connection}
             network={network}
             onBack={() => setScreen("scanner")}
-            onDone={handleRegistrationDone}
+            onDone={() => setScreen("dashboard")}
+          />
+        )}
+        {screen === "device" && deviceId && (
+          <DeviceScreen
+            deviceId={deviceId}
+            connection={connection}
+            onBack={() => setScreen("dashboard")}
           />
         )}
         {screen === "settings" && (
@@ -90,7 +111,9 @@ export default function App() {
             wallet={wallet}
             networks={NETWORKS}
             network={network}
+            theme={theme}
             onNetworkChange={handleNetworkChange}
+            onThemeChange={setTheme}
             onDeleteWallet={handleWalletDeleted}
             onBack={() => setScreen("dashboard")}
           />
@@ -98,11 +121,26 @@ export default function App() {
       </main>
 
       {/* Нижняя навигация */}
-      <nav className="border-t border-axis-border bg-axis-panel/90 px-4 py-2 backdrop-blur">
+      <nav className="border-t border-edge bg-panel/90 px-4 py-2 backdrop-blur">
         <div className="mx-auto flex max-w-md items-center justify-around">
-          <NavButton active={screen === "dashboard"} onClick={() => setScreen("dashboard")} label="Дашборд" icon="▦" />
-          <NavButton active={screen === "scanner"} onClick={() => setScreen("scanner")} label="Сканер" icon="◉" />
-          <NavButton active={screen === "settings"} onClick={() => setScreen("settings")} label="Настройки" icon="⚙" />
+          <NavButton
+            active={screen === "dashboard"}
+            onClick={() => setScreen("dashboard")}
+            label="Дашборд"
+            icon="▦"
+          />
+          <NavButton
+            active={screen === "scanner"}
+            onClick={() => setScreen("scanner")}
+            label="Сканер"
+            icon="◉"
+          />
+          <NavButton
+            active={screen === "settings"}
+            onClick={() => setScreen("settings")}
+            label="Настройки"
+            icon="⚙"
+          />
         </div>
       </nav>
     </div>
@@ -124,7 +162,7 @@ function NavButton({
     <button
       onClick={onClick}
       className={`flex flex-col items-center gap-0.5 rounded-xl px-4 py-1.5 text-xs font-medium transition ${
-        active ? "text-axis-accent" : "text-slate-500 hover:text-slate-300"
+        active ? "text-axis-accent" : "text-subtle hover:text-mut"
       }`}
     >
       <span className="text-lg leading-none">{icon}</span>
