@@ -33,7 +33,7 @@ export const DEVICE_SIGNER_PORT = 8080;
 /** Timeout for local-network requests to the device. */
 export const DEVICE_SIGNER_TIMEOUT_MS = 1500;
 
-// ── Сети ──
+// ── Networks ──
 export const NETWORKS: NetworkConfig[] = [
   {
     id: "devnet",

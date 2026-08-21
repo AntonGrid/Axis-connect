@@ -1,9 +1,9 @@
 /**
- * Полифиллы для @solana/web3.js в браузере.
+ * Polyfills for @solana/web3.js in the browser.
  *
- * web3.js 1.x написан под Node: ожидает глобальный `Buffer`, иногда ссылается
- * на `global`/`process`. Подключаем пакет `buffer` (уже в dependencies) и
- * подставляем минимальные глобальные заглушки.
+ * web3.js 1.x is written for Node: it expects a global `Buffer` and sometimes
+ * references `global`/`process`. We wire up the `buffer` package (already in
+ * dependencies) and install minimal global shims.
  */
 import { Buffer } from "buffer";
 

@@ -7,27 +7,29 @@ import { VitePWA } from "vite-plugin-pwa";
 /**
  * Axis-connect — Plug & Play PWA.
  *
- * - `npm run dev`       — dev-сервер на http://<LAN-IP>:5173.
- * - `HTTPS=1 npm run dev` / `npm run dev:https` — нативный HTTPS в Vite
- *   (плагин basicSsl, самоподписанный сертификат). Для прямого доступа
- *   с телефона по LAN-IP и prod-подобных тестов.
- * - `npm run dev:phone` — HTTP-бэкенд + localtunnel (проверено E2E).
- * - `npm run preview:phone` — production-сборка + localtunnel (рекомендуется
- *   для туннеля: ~5 файлов на страницу, без рейт-лимита free-тира).
+ * - `npm run dev`       — dev server at http://<LAN-IP>:5173.
+ * - `HTTPS=1 npm run dev` / `npm run dev:https` — native HTTPS in Vite
+ *   (basicSsl plugin, self-signed cert). For direct access from a phone over
+ *   LAN-IP and prod-like tests.
+ * - `npm run dev:phone` — HTTP backend + localtunnel (verified with E2E).
+ * - `npm run preview:phone` — production build + localtunnel (recommended for
+ *   a tunnel: ~5 files per page, no free-tier rate limit).
  *
- * ⚠️ localtunnel: edge НЕ проксирует TLS к локальному бэкенду (502), поэтому
- * для `dev:phone`/`preview:phone` бэкенд остаётся HTTP — edge сам отдаёт
- * телефону HTTPS, mixed content нет (Vite использует относительные URL).
+ * ⚠️ localtunnel: the edge does NOT proxy TLS to the local backend (502), so
+ * for `dev:phone`/`preview:phone` the backend stays HTTP — the edge itself
+ * serves HTTPS to the phone, so there is no mixed content (Vite uses relative
+ * URLs).
  *
- * Buffer-полифилл для @solana/web3.js в браузере (web3.js 1.x ожидает глобальный
- * `Buffer`). Пакет `buffer` подключается через `import { Buffer } from "buffer"`
- * в src/polyfills.ts; здесь лишь страхуем `process.env` от ReferenceError.
+ * Buffer polyfill for @solana/web3.js in the browser (web3.js 1.x expects a
+ * global `Buffer`). The `buffer` package is wired via `import { Buffer } from
+ * "buffer"` in src/polyfills.ts; here we only guard `process.env` against a
+ * ReferenceError.
  */
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    // Нативный HTTPS — по явному флагу HTTPS=1 (см. комментарий выше).
+    // Native HTTPS — via the explicit HTTPS=1 flag (see the comment above).
     ...(process.env.HTTPS === "1" ? [basicSsl()] : []),
     VitePWA({
       registerType: "autoUpdate",
@@ -36,14 +38,14 @@ export default defineConfig({
       manifest: {
         name: "Axis Connect",
         short_name: "Axis",
-        description: "Plug & Play онбординг энерго-устройств экосистемы Axis/ENRG",
+        description: "Plug & Play onboarding of Axis/ENRG energy devices",
         start_url: "/",
         scope: "/",
         display: "standalone",
         orientation: "portrait-primary",
         background_color: "#0b1020",
         theme_color: "#0b1020",
-        lang: "ru",
+        lang: "en",
         categories: ["utilities", "crypto"],
         icons: [
           { src: "/icon-72.png", sizes: "72x72", type: "image/png" },
@@ -65,7 +67,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
         navigateFallback: "/index.html",
-        // RPC и запросы к устройству НЕ кэшируем (только статика).
+        // RPC and device requests are NOT cached (static only).
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.(devnet\.)?solana\.com.*/,
@@ -74,7 +76,7 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: false, // SW только в production-сборке
+        enabled: false, // SW only in production builds
       },
     }),
   ],
@@ -82,14 +84,14 @@ export default defineConfig({
     "process.env": "{}",
   },
   server: {
-    host: true, // доступ с телефона по LAN IP
+    host: true, // phone access over the LAN IP
     port: 5173,
-    // localtunnel / другие внешние туннели присылают произвольный Host.
-    // `true` (валидное значение по типам Vite 8: `string[] | true`) разрешает
-    // любой Host в dev-режиме. НЕ использовать в production.
+    // localtunnel / other external tunnels send an arbitrary Host.
+    // `true` (a valid value per Vite 8 types: `string[] | true`) allows any
+    // Host in dev mode. Do NOT use in production.
     allowedHosts: true,
   },
-  // Production-превью (npm run preview:phone). Тоже принимает Host туннеля.
+  // Production preview (npm run preview:phone). Also accepts the tunnel Host.
   preview: {
     host: true,
     port: 4173,

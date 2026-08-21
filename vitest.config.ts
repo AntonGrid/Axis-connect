@@ -9,9 +9,10 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     css: false,
-    // web3.js (CJS) ↔ @noble/curves (ESM): в трансформе vitest ломается
-    // PublicKey.findProgramAddressSync ("Unable to find a viable program address nonce").
-    // Решение: @noble/curves загружается нативно Node (как в plain node — работает).
+    // web3.js (CJS) ↔ @noble/curves (ESM): under the vitest transform
+    // PublicKey.findProgramAddressSync breaks ("Unable to find a viable
+    // program address nonce"). Fix: load @noble/curves natively in Node
+    // (as in plain node — it works).
     server: {
       deps: {
         external: ["@noble/curves", "@noble/hashes"],

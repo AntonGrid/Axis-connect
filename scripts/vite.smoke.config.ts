@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
 /**
- * Конфиг сборки smoke-теста для Node (dev-only).
+ * Build config for the Node smoke test (dev-only).
  *   vite build --config scripts/vite.smoke.config.ts
  */
 export default defineConfig({

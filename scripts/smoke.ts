@@ -1,12 +1,12 @@
 /**
- * Smoke-тест (dev-only, не входит в production-сборку).
- * Проверяет:
- *  1. сериализацию аргументов и аккаунтов инструкций register/claim/provision/activate;
- *  2. длины и структуру канонических сообщений устройства;
- *  3. парсинг QR-пейлоада и нормализацию deviceId;
- *  4. PDA-деривации.
+ * Smoke test (dev-only, not part of the production build).
+ * Checks:
+ *  1. argument/account serialization of the register/claim/provision/activate instructions;
+ *  2. lengths and structure of the canonical device messages;
+ *  3. QR payload parsing and deviceId normalization;
+ *  4. PDA derivations.
  *
- * Запуск:
+ * Run:
  *   npm run smoke
  */
 import { PublicKey } from "@solana/web3.js";
@@ -57,15 +57,15 @@ console.log("activate_data_hex  =", Buffer.from(ixActivate.data).toString("hex")
 console.log("register_keys =", ixRegister.keys.map((k) => `${k.pubkey.toBase58()}:${k.isSigner ? "s" : ""}${k.isWritable ? "w" : ""}`).join(" "));
 console.log("claim_keys    =", ixClaim.keys.map((k) => `${k.pubkey.toBase58()}:${k.isSigner ? "s" : ""}${k.isWritable ? "w" : ""}`).join(" "));
 
-// Сообщения
+// Messages
 const regMsg = deviceRegisterMessage(deviceId, ts);
 const claimMsg = deviceClaimMessage(deviceId, operator, nonce, ts);
-console.log("\nregister_msg len =", regMsg.length, "(ожид. 60)");
-console.log("claim_msg len    =", claimMsg.length, "(ожид. 97)");
+console.log("\nregister_msg len =", regMsg.length, "(expected 60)");
+console.log("claim_msg len    =", claimMsg.length, "(expected 97)");
 console.log("register_msg prefix =", Buffer.from(regMsg.subarray(0, 20)).toString("utf8"));
 console.log("claim_msg prefix    =", Buffer.from(claimMsg.subarray(0, 17)).toString("utf8"));
 
-// QR-парсинг
+// QR parsing
 const qrJson = JSON.stringify({ deviceId: deviceId.toBase58(), schema: "axis-energy-v1" });
 const parsed = parseDeviceQrPayload(qrJson);
 console.log("\nQR parsed deviceId =", parsed.deviceId.toBase58(), "| hex =", parsed.deviceIdHex);
@@ -85,7 +85,7 @@ try {
 console.log("\nproducerPda    =", producer.toBase58());
 console.log("ownerDevicesPda=", ownerDevices.toBase58());
 
-// Валидация lengths и префиксов
+// Validate lengths and prefixes
 const ok =
   regMsg.length === 60 &&
   claimMsg.length === 97 &&
