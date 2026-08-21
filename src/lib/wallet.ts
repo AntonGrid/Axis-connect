@@ -4,14 +4,14 @@ import { base58Decode, base58Encode, base64ToBytes, bytesToBase64 } from "./enco
 
 interface StoredWallet {
   version: 1;
-  /** Секретный ключ (64 байта: 32 seed + 32 pubkey) в base64. */
+  /** Secret key (64 bytes: 32 seed + 32 pubkey) in base64. */
   secretKeyBase64: string;
   createdAt: number;
 }
 
 /**
- * Некастодиальный кошелёк: Ed25519 Keypair генерируется локально и хранится
- * ТОЛЬКО в localStorage браузера. Закрытый ключ никогда не покидает устройство.
+ * Non-custodial wallet: the Ed25519 keypair is generated locally and stored
+ * ONLY in the browser localStorage. The private key never leaves the device.
  */
 export function createWallet(): Keypair {
   const keypair = Keypair.generate();
@@ -28,7 +28,7 @@ export function loadWallet(): Keypair | null {
     const secret = base64ToBytes(parsed.secretKeyBase64);
     return Keypair.fromSecretKey(secret);
   } catch {
-    // Битый ключ — считаем, что кошелька нет (не выбрасываем из-за мусора).
+    // Broken key — treat as no wallet (don't throw because of garbage).
     localStorage.removeItem(STORAGE_KEYS.wallet);
     return null;
   }
@@ -51,17 +51,17 @@ export function getWalletPublicKey(): PublicKey | null {
   return loadWallet()?.publicKey ?? null;
 }
 
-/** Экспорт секретного ключа в формате base58 (как Phantom/нативные кошельки). */
+/** Export the secret key in base58 (like Phantom/native wallets). */
 export function exportSecretBase58(keypair: Keypair): string {
   return base58Encode(keypair.secretKey);
 }
 
-/** Восстановление кошелька из base58-секрета (64 байта). */
+/** Restore a wallet from a base58 secret (64 bytes). */
 export function importWalletFromSecretBase58(secretBase58: string): Keypair {
   const secret = base58Decode(secretBase58.trim());
   if (secret.length !== 64) {
     throw new Error(
-      `Неверная длина ключа: ожидается 64 байта, получено ${secret.length}`,
+      `Invalid key length: expected 64 bytes, got ${secret.length}`,
     );
   }
   const keypair = Keypair.fromSecretKey(secret);
@@ -69,7 +69,7 @@ export function importWalletFromSecretBase58(secretBase58: string): Keypair {
   return keypair;
 }
 
-/** Служебное: на всякий случай поимённо загрузить время создания. */
+/** Utility: load the wallet creation time (by name, just in case). */
 export function loadWalletCreatedAt(): number | null {
   const raw = localStorage.getItem(STORAGE_KEYS.wallet);
   if (!raw) return null;

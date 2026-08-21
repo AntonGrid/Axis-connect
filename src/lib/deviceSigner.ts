@@ -4,18 +4,18 @@ import { bytesToHex, hexToBytes } from "./encoding";
 import { deviceIdShort, toDeviceIdHex } from "./qr";
 
 /**
- * Клиент локального HTTP-signer'а прошивки ESP32 (модернизация Phase 3).
+ * Client for the ESP32 firmware local HTTP-signer (Phase 3 modernization).
  *
- * Протокол (документируется в firmware/esp32_proof_sender/README.md):
+ * Protocol (documented in firmware/esp32_proof_sender/README.md):
  *   GET  /info        → { "deviceId": "0x…", "schema": "axis-energy-v1", "firmware": "…" }
  *   POST /sign        → body { "hex": "<message hex>" }
  *                       → { "signature": "<0x-hex 64 bytes>" }
- * Устройство подписывает ТОЛЬКО domain-separated сообщения (register/claim/rotate),
- * произвольные сообщения отклоняются (закрывает аудит-замечание P2 о команде SIGN).
+ * The device signs ONLY domain-separated messages (register/claim/rotate);
+ * arbitrary messages are rejected (closes the audit P2 note about SIGN).
  *
- * ⚠️ mDNS-имя axis-device-<4hex>.local резолвится в современных браузерах (mDNS).
- * Для HTTPS-окружения прямой http:// к устройству может быть заблокирован
- * как mixed content — в этом случае укажите локальный IP устройства вручную.
+ * ⚠️ The mDNS name axis-device-<4hex>.local resolves in modern browsers.
+ * For an HTTPS environment, a direct http:// to the device may be blocked
+ * as mixed content — in that case enter the device's local IP manually.
  */
 
 export interface DeviceSignerInfo {
@@ -25,12 +25,12 @@ export interface DeviceSignerInfo {
   name?: string;
 }
 
-/** mDNS-хост устройства: "axis-device-<last4hex>.local" (совпадает с прошивкой). */
+/** Device mDNS host: "axis-device-<last4hex>.local" (matches the firmware). */
 export function deviceSignerHost(deviceId: PublicKey): string {
   return `axis-device-${deviceIdShort(deviceId).toLowerCase()}.local`;
 }
 
-/** Все имена хостов, которые прошивка может регистрировать (primary + legacy). */
+/** All host names the firmware may register (primary + legacy). */
 export function deviceSignerHosts(deviceId: PublicKey): string[] {
   const short = deviceIdShort(deviceId).toLowerCase();
   return [`axis-device-${short}.local`, `axis-${short}.local`];
@@ -60,7 +60,7 @@ async function fetchWithTimeout(url: string, opts: FetchOpts = {}): Promise<Resp
   }
 }
 
-/** Пробует каждый mDNS-хост устройства, пока какой-то не ответит. */
+/** Try each device mDNS host until one responds. */
 async function tryHosts<T>(
   deviceId: PublicKey,
   fn: (host: string) => Promise<T>,
@@ -70,13 +70,13 @@ async function tryHosts<T>(
       const result = await fn(host);
       if (result !== null && result !== undefined) return result;
     } catch {
-      // пробуем следующий хост
+      // try the next host
     }
   }
   return null;
 }
 
-/** Пинг устройства по mDNS. Возвращает null, если устройство не найдено. */
+/** Ping the device over mDNS. Returns null if the device is not found. */
 export async function fetchDeviceSignerInfo(
   deviceId: PublicKey,
   timeoutMs?: number,
@@ -98,7 +98,7 @@ export async function fetchDeviceSignerInfo(
   });
 }
 
-/** Запрос подписи у устройства (сервер подписывает только разрешённые домены). */
+/** Request a signature from the device (the server signs only allowed domains). */
 export async function requestDeviceSignature(
   deviceId: PublicKey,
   messageHex: string,
@@ -115,19 +115,19 @@ export async function requestDeviceSignature(
       },
     );
     if (!res.ok) {
-      throw new Error(`Устройство ответило HTTP ${res.status}`);
+      throw new Error(`Device responded with HTTP ${res.status}`);
     }
     const data = (await res.json()) as { signature?: string };
     if (typeof data.signature !== "string" || !data.signature) {
-      throw new Error("Устройство не вернуло поле signature");
+      throw new Error("Device did not return a signature field");
     }
     return hexToBytes(data.signature);
   });
-  if (!result) throw new Error("Устройство не найдено по сети (mDNS) или не ответило на /sign");
+  if (!result) throw new Error("Device not found on the network (mDNS) or did not answer /sign");
   return result;
 }
 
-/** Удобная обёртка: hex-сообщение → hex-подпись. */
+/** Convenience wrapper: hex message → hex signature. */
 export async function requestDeviceSignatureForMessage(
   deviceId: PublicKey,
   message: Uint8Array,
@@ -136,7 +136,7 @@ export async function requestDeviceSignatureForMessage(
   return requestDeviceSignature(deviceId, bytesToHex(message), timeoutMs);
 }
 
-/** Адаптер подписи к флоу регистрации — берёт подписи прямо с девайса по сети. */
+/** Signature adapter for the registration flow — takes signatures from the device over the network. */
 export function createDeviceSignerProvider(deviceId: PublicKey): {
   signRegister: (message: Uint8Array) => Promise<Uint8Array>;
   signClaim: (message: Uint8Array) => Promise<Uint8Array>;

@@ -1,6 +1,6 @@
 import bs58 from "bs58";
 
-/** base58 → байты (Bitcoin alphabet, как Solana PublicKey). */
+/** base58 → bytes (Bitcoin alphabet, same as Solana PublicKey). */
 export function base58Encode(bytes: Uint8Array): string {
   return bs58.encode(bytes);
 }
@@ -20,21 +20,21 @@ export function bytesToHex(bytes: Uint8Array): string {
   return out;
 }
 
-/** "a1b2..." или "0xA1B2" (регистронезависимо) → байты. */
+/** "a1b2..." or "0xA1B2" (case-insensitive) → bytes. */
 export function hexToBytes(hex: string): Uint8Array {
   let clean = hex.trim();
   if (clean.startsWith("0x") || clean.startsWith("0X")) clean = clean.slice(2);
-  if (clean.length % 2 !== 0) throw new Error("hex: нечётная длина");
+  if (clean.length % 2 !== 0) throw new Error("hex: odd length");
   const out = new Uint8Array(clean.length / 2);
   for (let i = 0; i < out.length; i++) {
     const byte = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
-    if (Number.isNaN(byte)) throw new Error("hex: некорректные символы");
+    if (Number.isNaN(byte)) throw new Error("hex: invalid characters");
     out[i] = byte;
   }
   return out;
 }
 
-/** base64 → байты. Работает в браузере (btoa/atob). */
+/** base64 → bytes. Works in the browser (btoa/atob). */
 export function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";
   const chunk = 0x8000;

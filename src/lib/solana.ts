@@ -27,7 +27,7 @@ export async function getSolBalanceLamports(
   }
 }
 
-/** Mint PDA SRC-токена ENRG: seeds = ["token-mint"], program = enrg_mvp. */
+/** ENRG SRC token Mint PDA: seeds = ["token-mint"], program = enrg_mvp. */
 export async function getEnrgTokenMint(): Promise<PublicKey> {
   const [mint] = await PublicKey.findProgramAddress(
     [Buffer.from(TOKEN_MINT_SEED)],
@@ -36,7 +36,7 @@ export async function getEnrgTokenMint(): Promise<PublicKey> {
   return mint;
 }
 
-/** Associated Token Account пользователя для заданного mint (деривация без spl-token). */
+/** User's Associated Token Account for a given mint (derived without spl-token). */
 export async function findAta(
   owner: PublicKey,
   mint: PublicKey,
@@ -50,15 +50,15 @@ export async function findAta(
 
 export interface EnrgBalance {
   mint: PublicKey;
-  /** Сырой остаток в атомарных единицах. */
+  /** Raw balance in atomic units. */
   raw: bigint;
-  /** Отформатированная строка с 9 десятичными знаками. */
+  /** Formatted string with 9 decimal places. */
   formatted: string;
-  /** Существует ли ATA (иначе остаток нулевой). */
+  /** Whether the ATA exists (otherwise the balance is zero). */
   hasAccount: boolean;
 }
 
-/** Баланс SRC (ENRG) токена на ATA пользователя. 0, если ATA ещё не создана. */
+/** SRC (ENRG) token balance on the user's ATA. 0 if the ATA is not created yet. */
 export async function getEnrgTokenBalance(
   connection: Connection,
   owner: PublicKey,
@@ -74,7 +74,7 @@ export async function getEnrgTokenBalance(
   }
 }
 
-/** 123_456_789_123 атомар → "123.456789123" */
+/** 123_456_789_123 atomic → "123.456789123" */
 export function formatAtomic(raw: bigint): string {
   const negative = raw < 0n;
   const abs = negative ? -raw : raw;
@@ -85,9 +85,9 @@ export function formatAtomic(raw: bigint): string {
 }
 
 /**
- * Последние `limit` начислений SRC на ATA пользователя.
- * Реальные данные: getSignaturesForAddress(ATA) + разбор parsed-транзакций
- * (post/pre tokenBalances). Возвращает пустой массив при ошибке/пустоте.
+ * The latest `limit` SRC accruals on the user's ATA.
+ * Real data: getSignaturesForAddress(ATA) + parsed-transaction analysis
+ * (post/pre tokenBalances). Returns an empty array on error/emptiness.
  */
 export async function getRecentTokenTransfers(
   connection: Connection,
@@ -111,7 +111,7 @@ export async function getRecentTokenTransfers(
       }
       if (!tx || !tx.meta) continue;
 
-      // Дельта на ATA из pre/post tokenBalances.
+      // Delta on the ATA from pre/post tokenBalances.
       const pre = tx.meta.preTokenBalances?.find(
         (b) => b.owner === owner.toBase58() && b.mint === mint.toBase58(),
       );
@@ -121,7 +121,7 @@ export async function getRecentTokenTransfers(
       const preAmount = pre ? BigInt(pre.uiTokenAmount.amount) : 0n;
       const postAmount = post ? BigInt(post.uiTokenAmount.amount) : 0n;
       const delta = postAmount - preAmount;
-      if (delta <= 0n) continue; // только начисления (не списания)
+      if (delta <= 0n) continue; // accruals only (not spendings)
 
       const isMint = tx.transaction.message.accountKeys.some(
         (k) => k.pubkey.equals(mint) && k.writable,
@@ -140,8 +140,8 @@ export async function getRecentTokenTransfers(
 }
 
 /**
- * Бесплатный airdrop SOL (devnet/localnet). Возвращает сигнатуру.
- * На mainnet не вызывать — вернёт ошибку RPC.
+ * Free SOL airdrop (devnet/localnet). Returns the signature.
+ * Do NOT call on mainnet — the RPC will return an error.
  */
 export async function requestAirdrop(
   connection: Connection,

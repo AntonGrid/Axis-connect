@@ -5,16 +5,16 @@ import enrgIdl from "../data/enrg_mvp.json";
 import { ascii, concatBytes, u8 } from "./borsh";
 
 /**
- * Модуль издателя манифестов: on-chain `register_manifest_verification`.
+ * Manifest publisher module: on-chain `register_manifest_verification`.
  *
- * ⚠️ ВАЖНО: это инструкция ДОВЕРЕННОГО ИЗДАТЕЛЯ (оракула/админа), а НЕ шаг
- * пользовательского онбординга. Контракт (версия Антона) требует:
+ * ⚠️ IMPORTANT: this is a TRUSTED PUBLISHER (oracle/admin) instruction, NOT a
+ * user-onboarding step. The contract requires:
  *   1) publisher (signer) == ManifestRegistry.oracle_authority;
- *   2) валидную Ed25519-подпись издателя над каноническим сообщением
+ *   2) a valid Ed25519 publisher signature over the canonical message
  *      b"enrg:manifest" || manifest_id(16) || content_hash(32) || version(1),
- *      предъявленную через ed25519-precompile-инструкцию (sysvar Instructions).
+ *      presented via the ed25519-precompile instruction (sysvar Instructions).
  *
- * Аккаунты (как в instructions/manifest_verification.rs):
+ * Accounts (as in instructions/manifest_verification.rs):
  *   verification (init PDA [b"manifest-verification", manifest_id]),
  *   registry     (PDA [b"manifest-registry"]),
  *   publisher    (Signer, writable),
@@ -22,7 +22,7 @@ import { ascii, concatBytes, u8 } from "./borsh";
  *   system_program.
  */
 
-// ── Публичные PDA-деривации ──
+// ── Public PDA derivations ──
 
 export function manifestRegistryPdaSync(programId: PublicKey): PublicKey {
   const [pda] = PublicKey.findProgramAddressSync(
@@ -43,21 +43,21 @@ export function manifestVerificationPdaSync(
   return pda;
 }
 
-// ── Каноническое сообщение издателя (зеркалит manifest_verification.rs) ──
+// ── Publisher canonical message (mirrors manifest_verification.rs) ──
 
 const MANIFEST_SIGN_PREFIX = ascii("enrg:manifest");
 
 export function manifestSignMessage(
-  manifestId: Uint8Array, // 16 байт
-  contentHash: Uint8Array, // 32 байта
+  manifestId: Uint8Array, // 16 bytes
+  contentHash: Uint8Array, // 32 bytes
   manifestVersion: number, // u8
 ): Uint8Array {
-  if (manifestId.length !== 16) throw new Error("manifestId: ожидается 16 байт");
-  if (contentHash.length !== 32) throw new Error("contentHash: ожидается 32 байта");
+  if (manifestId.length !== 16) throw new Error("manifestId: expected 16 bytes");
+  if (contentHash.length !== 32) throw new Error("contentHash: expected 32 bytes");
   return concatBytes(MANIFEST_SIGN_PREFIX, manifestId, contentHash, u8(manifestVersion));
 }
 
-// ── Строитель инструкции (аргументы и аккаунты по IDL) ──
+// ── Instruction builder (arguments and accounts per the IDL) ──
 
 export interface ManifestVerificationArgs {
   manifestId: Uint8Array; // [u8; 16]
@@ -79,7 +79,7 @@ interface EnrgIdl {
 function discriminatorOf(ixName: string): Uint8Array {
   const idl = enrgIdl as unknown as EnrgIdl;
   const ix = idl.instructions.find((i) => i.name === ixName);
-  if (!ix) throw new Error(`Инструкция отсутствует в IDL: ${ixName}`);
+  if (!ix) throw new Error(`Instruction not found in IDL: ${ixName}`);
   return Uint8Array.from(ix.discriminator);
 }
 

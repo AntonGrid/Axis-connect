@@ -1,24 +1,24 @@
 import type { PublicKey } from "@solana/web3.js";
 
-/** Канонический `schema` в QR-коде устройства (зафиксирован протоколом). */
+/** Canonical `schema` in a device QR code (fixed by the protocol). */
 export const AXIS_ENERGY_SCHEMA = "axis-energy-v1";
 
 /**
- * Пейлоад QR-кода на физическом устройстве (JSON).
+ * QR payload on a physical device (JSON).
  *
  * ```json
  * { "deviceId": "PUBLIC_KEY", "schema": "axis-energy-v1" }
  * ```
- * `deviceId` — публичный Ed25519-ключ устройства. Принимается в двух форматах:
- * - base58 (канонический Solana PublicKey, 32 байта);
- * - "0x" + 64 hex (как выводит прошивка ESP32 через INFO / boot-лог).
+ * `deviceId` — the device's public Ed25519 key. Accepted in two formats:
+ * - base58 (canonical Solana PublicKey, 32 bytes);
+ * - "0x" + 64 hex (as printed by the ESP32 firmware via INFO / boot log).
  */
 export interface DeviceQrPayload {
   deviceId: string;
   schema: string;
 }
 
-/** Жизненный цикл устройства (ADR-0005, зеркалит on-chain DeviceState). */
+/** Device lifecycle (ADR-0005, mirrors on-chain DeviceState). */
 export type DeviceState =
   | "Unregistered"
   | "Registered"
@@ -29,7 +29,7 @@ export type DeviceState =
   | "Maintenance"
   | "Revoked";
 
-/** On-chain статус устройства (из EnergyProducer PDA). */
+/** On-chain device status (from the EnergyProducer PDA). */
 export interface DeviceStatus {
   exists: boolean;
   state: DeviceState;
@@ -44,7 +44,7 @@ export interface NetworkConfig {
   id: NetworkId;
   label: string;
   rpcUrl: string;
-  /** Разрешён ли бесплатный airdrop SOL (devnet/localnet). */
+  /** Whether free SOL airdrop is allowed (devnet/localnet). */
   airdrop: boolean;
 }
 
@@ -58,22 +58,22 @@ export type AppScreen =
 
 export type ThemeMode = "dark" | "light";
 
-/** Точка энергоистории (локальный снапшот устройства). */
+/** Energy-history point (local device snapshot). */
 export interface EnergyPoint {
   ts: number; // unix ms
-  powerW: number; // текущая мощность, Вт
+  powerW: number; // current power, W
 }
 
-/** Запись истории начислений SRC (из RPC token-транзакций). */
+/** SRC accrual history entry (from RPC token transactions). */
 export interface TxRecord {
   signature: string;
-  /** Дельта на ATA пользователя в атомарных единицах (>=0 начисление). */
+  /** Delta on the user's ATA in atomic units (>=0 accrual). */
   amount: bigint;
   timestamp: number | null; // unix s
   source: "transfer" | "mint" | "unknown";
 }
 
-/** Полный on-chain EnergyProducer (state/producer.rs). */
+/** Full on-chain EnergyProducer (state/producer.rs). */
 export interface EnergyProducerData {
   authority: string; // base58
   deviceId: string; // base58
@@ -91,7 +91,7 @@ export interface EnergyProducerData {
   producerPda: string; // base58
 }
 
-/** Шаг регистрации устройства на Solana. */
+/** Device registration step on Solana. */
 export type RegistrationStepId =
   | "register"
   | "claim"
@@ -112,12 +112,12 @@ export interface RegistrationOutcome {
   error?: string;
 }
 
-/** Результат сканирования QR. */
+/** QR scan result. */
 export interface QrScanResult {
   raw: string;
   payload: DeviceQrPayload;
-  /** Нормализованный Solana PublicKey устройства. */
+  /** Normalized Solana PublicKey of the device. */
   deviceId: PublicKey;
-  /** "0x" + 64 hex — для mDNS-хоста и отображения. */
+  /** "0x" + 64 hex — for the mDNS host and display. */
   deviceIdHex: string;
 }

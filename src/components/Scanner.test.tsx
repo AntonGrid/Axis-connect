@@ -23,37 +23,37 @@ const PAYLOAD = JSON.stringify({
 });
 
 describe("Scanner", () => {
-  it("ручной ввод QR → превью устройства → Подключить", async () => {
+  it("manual QR entry → device preview → Connect", async () => {
     const user = userEvent.setup();
     const onResult = vi.fn();
     render(<Scanner onResult={onResult} onBack={() => {}} />);
 
-    // Открыть ручной ввод и вставить пейлоад (paste — корректно работает с {}/:).
-    await user.click(screen.getByText(/Ввести QR-код вручную/));
+    // Open manual entry and paste the payload (paste works correctly with {} / :).
+    await user.click(screen.getByText(/Enter QR code manually/));
     const input = screen.getByPlaceholderText(/deviceId/);
     await user.click(input);
     await user.paste(PAYLOAD);
-    await user.click(screen.getByRole("button", { name: /Применить/ }));
+    await user.click(screen.getByRole("button", { name: /Apply/ }));
 
-    // Превью устройства: суффикс — последние 4 hex deviceId (как в прошивке).
+    // Device preview: the suffix is the last 4 hex chars of deviceId (as in the firmware).
     const pk = deviceIdShort(new (require("@solana/web3.js").PublicKey)(DEVICE_BASE58));
-    expect(await screen.findByText(new RegExp(`Устройство: ESP32-${pk}`))).toBeInTheDocument();
+    expect(await screen.findByText(new RegExp(`Device: ESP32-${pk}`))).toBeInTheDocument();
     expect(screen.getByText(/axis-energy-v1/)).toBeInTheDocument();
 
-    // Кнопка «Подключить» отдаёт результат.
-    await user.click(screen.getByRole("button", { name: /Подключить/ }));
+    // The "Connect" button returns the result.
+    await user.click(screen.getByRole("button", { name: /Connect/ }));
     expect(onResult).toHaveBeenCalledTimes(1);
     const res = onResult.mock.calls[0][0] as QrScanResult;
     expect(res.deviceId.toBase58()).toBe(DEVICE_BASE58);
   });
 
-  it("невалидный ввод показывает ошибку", async () => {
+  it("invalid input shows an error", async () => {
     const user = userEvent.setup();
     render(<Scanner onResult={() => {}} onBack={() => {}} />);
-    await user.click(screen.getByText(/Ввести QR-код вручную/));
+    await user.click(screen.getByText(/Enter QR code manually/));
     await user.type(screen.getByPlaceholderText(/deviceId/), "not json");
-    await user.click(screen.getByRole("button", { name: /Применить/ }));
-    expect(await screen.findByText(/не содержит валидный JSON/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Apply/ }));
+    expect(await screen.findByText(/does not contain valid JSON/)).toBeInTheDocument();
   });
 });
 

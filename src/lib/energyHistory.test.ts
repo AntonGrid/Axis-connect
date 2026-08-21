@@ -6,7 +6,7 @@ import {
   toHourlyChart,
 } from "../lib/energyHistory";
 
-describe("energyHistory (локальные снапшоты)", () => {
+describe("energyHistory (local snapshots)", () => {
   it("append + read back", () => {
     const now = Date.now();
     appendEnergyPoint("devA", { ts: now, powerW: 1200 });
@@ -28,13 +28,13 @@ describe("energyHistory (локальные снапшоты)", () => {
     const seeded = ensureSeedData("devC");
     expect(seeded.length).toBeGreaterThan(0);
     const again = ensureSeedData("devC");
-    expect(again.length).toBe(seeded.length); // не дублируется
+    expect(again.length).toBe(seeded.length); // not duplicated
   });
 
   it("toHourlyChart buckets by hour", () => {
-    // Якорь на середине текущего часа — оба поинта гарантированно в одном бакете.
+    // Anchor at the middle of the current hour — both points are in one bucket.
     const hourStart = Math.floor(Date.now() / 3_600_000) * 3_600_000;
-    const now = hourStart + 30 * 60 * 1000; // минута 30 текущего часа
+    const now = hourStart + 30 * 60 * 1000; // minute 30 of the current hour
     appendEnergyPoint("devD", { ts: now - 30 * 60 * 1000, powerW: 1000 });
     appendEnergyPoint("devD", { ts: now - 10 * 60 * 1000, powerW: 3000 });
     const chart = toHourlyChart("devD");

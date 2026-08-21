@@ -1,7 +1,7 @@
 import { STORAGE_KEYS } from "../config";
 import type { ThemeMode } from "../types";
 
-/** Применить тему к <html> и сохранить выбор. */
+/** Apply the theme to <html> and persist the choice. */
 export function applyTheme(mode: ThemeMode): void {
   const root = document.documentElement;
   root.classList.toggle("light", mode === "light");
@@ -12,7 +12,7 @@ export function applyTheme(mode: ThemeMode): void {
 export function getTheme(): ThemeMode {
   const saved = localStorage.getItem(STORAGE_KEYS.theme);
   if (saved === "light" || saved === "dark") return saved;
-  // Дефолт — тёмная (как был дизайн); по желанию можно media-запрос.
+  // Default — dark (as the original design); a media query can be added later.
   return "dark";
 }
 

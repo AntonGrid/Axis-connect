@@ -1,6 +1,6 @@
 import { STORAGE_KEYS } from "../config";
 
-/** Устройства, успешно зарегистрированные через это приложение (кэш для UI). */
+/** Devices successfully registered through this app (UI cache). */
 export interface RegisteredDevice {
   deviceId: string; // base58
   state: string;

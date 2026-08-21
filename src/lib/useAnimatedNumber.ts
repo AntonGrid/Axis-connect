@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Анимированный счётчик: плавно "доезжает" до нового значения.
- * Используется для индикатора баланса (SOL/SRC) при обновлении.
+ * Animated counter: smoothly "travels" to a new value.
+ * Used for the balance indicator (SOL/SRC) on updates.
  */
 export function useAnimatedNumber(target: number, durationMs = 600): number {
   const [display, setDisplay] = useState(target);

@@ -8,9 +8,9 @@ interface Props {
 }
 
 /**
- * Экран 2 — Сканирование QR устройства.
- * Рамка для наведения, зелёная подсветка при успехе, превью-карточка
- * "Устройство: ESP32-XXXX" с кнопкой "Подключить".
+ * Screen 2 — Device QR scanning.
+ * Alignment frame, green highlight on success, a preview card
+ * "Device: ESP32-XXXX" with a "Connect" button.
  */
 export default function Scanner({ onResult, onBack }: Props) {
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ export default function Scanner({ onResult, onBack }: Props) {
   const hintShownRef = useRef(false);
 
   const handleDecoded = useCallback((res: QrScanResult) => {
-    // Подсветка успеха + стоп камеры; на «Подключить» переходим дальше.
+    // Success highlight + stop the camera; "Connect" moves on.
     setDetected(res);
     void scannerRef.current?.stop();
   }, []);
@@ -39,7 +39,7 @@ export default function Scanner({ onResult, onBack }: Props) {
       () => {
         if (!cancelled && !hintShownRef.current) {
           hintShownRef.current = true;
-          setFrameHint("Наведите камеру на QR-код устройства");
+          setFrameHint("Point the camera at the device QR code");
         }
       },
     ).catch((err) => {
@@ -65,14 +65,14 @@ export default function Scanner({ onResult, onBack }: Props) {
           onClick={onBack}
           className="rounded-xl border border-edge px-3 py-2 text-sm text-mut transition hover:bg-soft"
         >
-          ← Назад
+          ← Back
         </button>
-        <h1 className="text-lg font-bold text-ink">Сканирование</h1>
+        <h1 className="text-lg font-bold text-ink">Scan</h1>
         <span className="w-16" />
       </div>
 
       {detected ? (
-        /* Превью устройства после сканирования */
+        /* Device preview after scanning */
         <div className="scan-success rounded-2xl border-2 border-axis-success bg-panel p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-axis-success/15 text-2xl">
@@ -80,7 +80,7 @@ export default function Scanner({ onResult, onBack }: Props) {
             </div>
             <div className="min-w-0">
               <p className="text-lg font-bold text-ink">
-                Устройство: ESP32-{deviceIdShort(detected.deviceId)}
+                Device: ESP32-{deviceIdShort(detected.deviceId)}
               </p>
               <p className="truncate font-mono text-[10px] text-subtle">
                 ID: {detected.deviceId.toBase58()}
@@ -95,13 +95,13 @@ export default function Scanner({ onResult, onBack }: Props) {
               onClick={() => { setDetected(null); setManualText(""); }}
               className="flex-1 rounded-xl border border-edge px-4 py-3 text-sm font-medium text-mut transition hover:bg-soft"
             >
-              Сканировать ещё
+              Scan again
             </button>
             <button
               onClick={() => onResult(detected)}
               className="flex-1 rounded-xl bg-axis-accent px-4 py-3 text-sm font-bold text-white transition hover:brightness-110"
             >
-              Подключить
+              Connect
             </button>
           </div>
         </div>
@@ -109,8 +109,8 @@ export default function Scanner({ onResult, onBack }: Props) {
         <div className="rounded-2xl border border-edge bg-panel p-4">
           <p className="text-sm text-axis-danger">{cameraError}</p>
           <p className="mt-2 text-xs text-mut">
-            Убедитесь, что разрешение на камеру выдано и страница открыта по HTTPS
-            (или localhost).
+            Make sure camera permission is granted and the page is served over HTTPS
+            (or localhost).
           </p>
         </div>
       ) : (
@@ -119,7 +119,7 @@ export default function Scanner({ onResult, onBack }: Props) {
             id="qr-reader"
             className="overflow-hidden rounded-2xl border border-edge bg-black/60"
           />
-          {/* Рамка для наведения */}
+          {/* Alignment frame */}
           <div
             className="pointer-events-none absolute inset-0 flex items-center justify-center"
             aria-hidden
@@ -141,11 +141,11 @@ export default function Scanner({ onResult, onBack }: Props) {
         <p className="text-center text-[11px] text-subtle">{frameHint}</p>
       )}
 
-      {/* Ручной ввод (fallback) */}
+      {/* Manual entry (fallback) */}
       {!detected && (
         <details className="rounded-2xl border border-edge bg-panel p-3">
           <summary className="cursor-pointer text-sm font-medium text-mut">
-            Ввести QR-код вручную
+            Enter QR code manually
           </summary>
           <textarea
             value={manualText}
@@ -158,7 +158,7 @@ export default function Scanner({ onResult, onBack }: Props) {
             onClick={applyManual}
             className="mt-2 w-full rounded-xl bg-axis-accent px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
           >
-            Применить
+            Apply
           </button>
         </details>
       )}

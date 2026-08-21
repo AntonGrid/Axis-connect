@@ -7,8 +7,8 @@ interface Props {
 }
 
 /**
- * Экран 1 — Онбординг. Некастодиальный кошелёк создаётся локально
- * (Ed25519 Keypair → localStorage). Ключ никогда не покидает устройство.
+ * Screen 1 — Onboarding. A non-custodial wallet is created locally
+ * (Ed25519 Keypair → localStorage). The key never leaves the device.
  */
 export default function Onboarding({ onCreated }: Props) {
   const [mode, setMode] = useState<"hero" | "import" | "backup">("hero");
@@ -40,8 +40,8 @@ export default function Onboarding({ onCreated }: Props) {
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight text-ink">Axis Connect</h1>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-mut">
-              Подключите устройство за 10 секунд. Сканируйте QR-код и получайте
-              токены за генерацию энергии.
+              Connect your device in 10 seconds. Scan the QR code and earn
+              tokens for generating energy.
             </p>
           </div>
 
@@ -50,30 +50,30 @@ export default function Onboarding({ onCreated }: Props) {
               onClick={handleCreate}
               className="rounded-2xl bg-axis-accent px-4 py-4 text-base font-bold text-white shadow-lg shadow-axis-accent/20 transition hover:brightness-110"
             >
-              Создать кошелёк
+              Create wallet
             </button>
             <button
               onClick={() => { setMode("import"); setError(null); }}
               className="rounded-2xl border border-edge px-4 py-3 text-sm font-medium text-mut transition hover:bg-soft"
             >
-              Импортировать кошелёк
+              Import wallet
             </button>
           </div>
 
           <p className="max-w-xs text-center text-[11px] leading-relaxed text-subtle">
-            Некастодиальный кошелёк: ключ создаётся и хранится только на вашем
-            устройстве. Для транзакций потребуется немного SOL.
+            Non-custodial wallet: the key is created and stored only on your
+            device. A small amount of SOL is needed for transactions.
           </p>
         </div>
       )}
 
       {mode === "import" && (
         <div className="w-full max-w-md rounded-2xl border border-edge bg-panel p-5">
-          <h2 className="font-semibold text-ink">Импорт кошелька</h2>
+          <h2 className="font-semibold text-ink">Import wallet</h2>
           <textarea
             value={secretInput}
             onChange={(e) => setSecretInput(e.target.value)}
-            placeholder="Секретный ключ base58 (64 байта)"
+            placeholder="Secret key base58 (64 bytes)"
             rows={3}
             className="mt-3 w-full rounded-xl border border-edge bg-surface p-3 font-mono text-xs text-ink outline-none focus:border-axis-accent"
           />
@@ -83,13 +83,13 @@ export default function Onboarding({ onCreated }: Props) {
               onClick={() => { setMode("hero"); setError(null); }}
               className="flex-1 rounded-xl border border-edge px-4 py-3 text-sm font-medium text-mut transition hover:bg-soft"
             >
-              Назад
+              Back
             </button>
             <button
               onClick={handleImport}
               className="flex-1 rounded-xl bg-axis-accent px-4 py-3 text-sm font-semibold text-white hover:brightness-110"
             >
-              Восстановить
+              Restore
             </button>
           </div>
         </div>
@@ -97,14 +97,14 @@ export default function Onboarding({ onCreated }: Props) {
 
       {mode === "backup" && backup && (
         <div className="w-full max-w-md rounded-2xl border border-edge bg-panel p-5">
-          <h2 className="font-semibold text-axis-success">Кошелёк создан</h2>
+          <h2 className="font-semibold text-axis-success">Wallet created</h2>
           <p className="mt-1 text-xs text-mut">
-            Адрес: <span className="break-all font-mono text-ink">{backup.pubkey}</span>
+            Address: <span className="break-all font-mono text-ink">{backup.pubkey}</span>
           </p>
           <div className="mt-3 rounded-xl bg-soft p-3">
             <p className="text-xs font-medium text-axis-warn">
-              ⚠️ Секретный ключ (base58). Сохраните его в надёжном месте — без него
-              восстановить кошелёк невозможно.
+              ⚠️ Secret key (base58). Save it somewhere safe — without it the
+              wallet cannot be restored.
             </p>
             <p className="mt-2 break-all font-mono text-[10px] text-ink">{backup.secret}</p>
           </div>
@@ -112,7 +112,7 @@ export default function Onboarding({ onCreated }: Props) {
             onClick={() => onCreated(createWallet())}
             className="mt-4 w-full rounded-xl bg-axis-accent px-4 py-3 font-semibold text-white transition hover:brightness-110"
           >
-            Продолжить
+            Continue
           </button>
         </div>
       )}

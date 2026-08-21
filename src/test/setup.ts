@@ -6,10 +6,10 @@ import { PublicKey } from "@solana/web3.js";
 import { afterEach, beforeEach } from "vitest";
 
 /**
- * jsdom-окружение vitest подменяет глобальные `Uint8Array`/`Buffer` на
- * конструкторы из другого realm: `Buffer.alloc(4) instanceof Uint8Array`
- * становится false, из-за чего web3.js (буфер-layout энкод ed25519,
- * buffer-layout и т.д.) ломается. Возвращаем Node-версии.
+ * The vitest jsdom environment replaces the global `Uint8Array`/`Buffer` with
+ * constructors from another realm: `Buffer.alloc(4) instanceof Uint8Array`
+ * becomes false, breaking web3.js (buffer-layout ed25519 encoding,
+ * buffer-layout, etc.). Restore the Node versions.
  */
 const g = globalThis as unknown as Record<string, unknown>;
 const nodeU8 = Object.getPrototypeOf(Buffer.prototype).constructor;
@@ -19,15 +19,15 @@ if (!(Buffer.alloc(4) instanceof (g.Uint8Array as typeof Uint8Array))) {
 }
 
 /**
- * web3.js 1.x (CJS) ↔ @noble/curves (ESM): в трансформе vite/vitest метод
- * `isOnCurve` перестаёт валидировать точки, из-за чего
- * `PublicKey.findProgramAddress(Sync)` падает с
+ * web3.js 1.x (CJS) ↔ @noble/curves (ESM): under the vite/vitest transform the
+ * `isOnCurve` method stops validating points, so
+ * `PublicKey.findProgramAddress(Sync)` fails with
  * "Unable to find a viable program address nonce".
  *
- * Решение: в тестовом setup подменяем findProgramAddress* на точную реплику
- * алгоритма web3.js (seeds ‖ programId ‖ "ProgramDerivedAddress" → sha256),
- * но с проверкой кривой через НАТИВНЫЙ CJS-require @noble/curves (в plain
- * Node этот путь работает корректно).
+ * Fix: in the test setup, replace findProgramAddress* with an exact replica of
+ * the web3.js algorithm (seeds ‖ programId ‖ "ProgramDerivedAddress" → sha256),
+ * but with curve checks via a NATIVE CJS require of @noble/curves (in plain
+ * Node this path works correctly).
  */
 const nativeRequire = createRequire(import.meta.url);
 
@@ -41,7 +41,7 @@ const nativeEd = (() => {
   }
 })();
 
-/** sha256 через node:crypto (без realm-проблем ESM-интеропа). */
+/** sha256 via node:crypto (no ESM-interop realm issues). */
 const nativeSha256 = (() => {
   try {
     const { createHash } = nativeRequire("node:crypto") as typeof import("node:crypto");

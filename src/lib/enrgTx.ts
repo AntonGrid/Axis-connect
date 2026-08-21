@@ -13,7 +13,7 @@ import type { DeviceState, EnergyProducerData, RegistrationOutcome, Registration
 import { ascii, concatBytes, i64le, u64le } from "./borsh";
 
 // ════════════════════════════════════════════════════════════════════
-//  IDL-типизация (enrg_mvp, скопирован из ENRG/target/idl/enrg_mvp.json)
+//  IDL typing (enrg_mvp, copied from ENRG/target/idl/enrg_mvp.json)
 // ════════════════════════════════════════════════════════════════════
 
 interface IdlAccountMeta {
@@ -35,7 +35,7 @@ const idl = enrgIdl as unknown as EnrgIdl;
 
 function getIx(name: string): IdlInstruction {
   const ix = idl.instructions.find((i) => i.name === name);
-  if (!ix) throw new Error(`Инструкция отсутствует в IDL: ${name}`);
+  if (!ix) throw new Error(`Instruction not found in IDL: ${name}`);
   return ix;
 }
 
@@ -44,9 +44,9 @@ function ixDiscriminator(name: string): Uint8Array {
 }
 
 /**
- * Универсальный строитель Anchor-инструкции: порядок аккаунтов и дискриминатор
- * берутся ИЗ IDL (исключает рассинхронизацию с контрактом), данные аргументов
- * сериализуются в Borsh-совместимом порядке полей `args`.
+ * Generic Anchor instruction builder: the account order and the discriminator
+ * are taken FROM the IDL (prevents drift from the contract); argument data is
+ * serialized in the Borsh-compatible order of the `args` fields.
  */
 export function buildIxFromIdl(
   programId: PublicKey,
@@ -57,7 +57,7 @@ export function buildIxFromIdl(
   const ix = getIx(ixName);
   const keys = ix.accounts.map((a) => {
     const pubkey = accounts[a.name];
-    if (!pubkey) throw new Error(`Аккаунт "${a.name}" не передан для ${ixName}`);
+    if (!pubkey) throw new Error(`Account "${a.name}" was not provided for ${ixName}`);
     return { pubkey, isSigner: a.signer === true, isWritable: a.writable === true };
   });
   const data = concatBytes(ixDiscriminator(ixName), ...argsBytes);
@@ -65,8 +65,8 @@ export function buildIxFromIdl(
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  Сообщения, подписываемые УСТРОЙСТВОМ (зеркалят security/lifecycle.rs)
-//  Формат зафиксирован протоколом — менять нельзя.
+//  Messages signed by the DEVICE (mirror security/lifecycle.rs)
+//  The format is fixed by the protocol — do not change.
 // ════════════════════════════════════════════════════════════════════
 
 const PREFIX_REGISTER = ascii("enrg:device:register");
@@ -97,7 +97,7 @@ export function deviceClaimMessage(
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  PDA-деривации (зеркалят tests/helpers/pda.ts)
+//  PDA derivations (mirror tests/helpers/pda.ts)
 // ════════════════════════════════════════════════════════════════════
 
 export function producerPdaSync(programId: PublicKey, deviceId: PublicKey): PublicKey {
@@ -116,7 +116,7 @@ export function ownerDevicesPdaSync(programId: PublicKey, owner: PublicKey): Pub
   return pda;
 }
 // ════════════════════════════════════════════════════════════════════
-//  On-chain статус устройства (EnergyProducer PDA)
+//  On-chain device status (EnergyProducer PDA)
 // ════════════════════════════════════════════════════════════════════
 
 const PRODUCER_STATE_OFFSET = 8 + 32 + 32 + 8 + 8 + 8; // discr+authority+device_id+nonce+energy+ts
@@ -132,7 +132,7 @@ const STATE_NAMES: DeviceState[] = [
   "Revoked",
 ];
 
-/** Сырые данные аккаунта EnergyProducer → DeviceState (без тяжёлого borsh). */
+/** Raw EnergyProducer account data → DeviceState (without heavy borsh). */
 export function parseDeviceState(data: Uint8Array | null): DeviceState | null {
   if (!data || data.length < PRODUCER_STATE_OFFSET + 1) return null;
   const idx = data[PRODUCER_STATE_OFFSET];
@@ -170,7 +170,7 @@ export async function getDeviceStatus(
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  Полный парсер EnergyProducer (state/producer.rs, все 13 полей)
+//  Full EnergyProducer parser (state/producer.rs, all 13 fields)
 // ════════════════════════════════════════════════════════════════════
 
 const TIERS = ["Basic", "Verified", "Industrial", "Institutional"] as const;
@@ -184,7 +184,7 @@ function i64At(buf: Uint8Array, offset: number): bigint {
   return dv.getBigInt64(0, true);
 }
 
-/** Сырые данные аккаунта EnergyProducer → полная структура (без Anchor). */
+/** Raw EnergyProducer account data → full structure (without Anchor). */
 export function parseEnergyProducer(data: Uint8Array, producerPda: PublicKey): EnergyProducerData {
   // discr(8) | authority(32) | device_id(32) | nonce(8) | energy_wh(8) | ts(8)
   // | state(1) | tier(1) | month_energy(8) | month_start(8) | claim_nonce(8)
@@ -224,7 +224,7 @@ export function parseEnergyProducer(data: Uint8Array, producerPda: PublicKey): E
   };
 }
 
-/** Получить и распарсить EnergyProducer PDA (null, если аккаунта нет). */
+/** Fetch and parse the EnergyProducer PDA (null if the account does not exist). */
 export async function getEnergyProducer(
   connection: Connection,
   programId: PublicKey,
@@ -237,10 +237,10 @@ export async function getEnergyProducer(
 }
 
 // ════════════════════════════════════════════════════════════════════
-//  Сборка и отправка транзакций
+//  Transaction building & sending
 // ════════════════════════════════════════════════════════════════════
 
-/** ed25519-precompile-инструкция (обязательна ПЕРЕД program-инструкцией). */
+/** ed25519-precompile instruction (required BEFORE the program instruction). */
 export function buildEd25519PrecompileIx(
   publicKey: PublicKey,
   message: Uint8Array,
@@ -264,7 +264,7 @@ export function buildRegisterDeviceIx(
     {
       operator: accounts.operator,
       producer: accounts.producer,
-      device_id: accounts.deviceId, // имя аккаунта в IDL — device_id
+      device_id: accounts.deviceId, // IDL account name — device_id
       instructions: SYSVAR_INSTRUCTIONS_ID,
       system_program: PublicKey.default,
     },
@@ -283,7 +283,7 @@ export function buildClaimDeviceIx(
     {
       authority: accounts.authority,
       producer: accounts.producer,
-      owner_devices: accounts.ownerDevices, // имя аккаунта в IDL — owner_devices
+      owner_devices: accounts.ownerDevices, // IDL account name — owner_devices
       instructions: SYSVAR_INSTRUCTIONS_ID,
       system_program: PublicKey.default,
     },
@@ -305,14 +305,15 @@ export function buildActivateDeviceIx(
   return buildIxFromIdl(programId, "activate_device", {
     authority: accounts.authority,
     producer: accounts.producer,
-    owner_devices: accounts.ownerDevices, // имя аккаунта в IDL — owner_devices
+    owner_devices: accounts.ownerDevices, // IDL account name — owner_devices
   }, []);
 }
 
 /**
- * claim_rewards — вывод наград из staking-пула (инструкция существует в IDL).
- * Без аргументов; аккаунты: stake_info (StakeInfo, writable) + authority (signer).
- * Требует предварительно созданный StakeInfo-аккаунт (staking-флоу ENRG).
+ * claim_rewards — withdraw rewards from the staking pool (instruction exists
+ * in the IDL). No arguments; accounts: stake_info (StakeInfo, writable) +
+ * authority (signer). Requires a StakeInfo account created beforehand (ENRG
+ * staking flow).
  */
 export function buildClaimRewardsIx(
   programId: PublicKey,
@@ -324,7 +325,7 @@ export function buildClaimRewardsIx(
   }, []);
 }
 
-/** Отправка транзакции от кошелька пользователя + ожидание финализации. */
+/** Send a transaction from the user wallet and wait for finalization. */
 export async function sendUserTransaction(
   connection: Connection,
   payer: Keypair,
@@ -340,14 +341,14 @@ export async function sendUserTransaction(
   return signature;
 }
 // ════════════════════════════════════════════════════════════════════
-//  Оркестрация полного флоу регистрации (ADR-0005)
+//  Full registration-flow orchestration (ADR-0005)
 // ════════════════════════════════════════════════════════════════════
 
 const STEP_META: Array<{ id: RegistrationStepId; label: string }> = [
-  { id: "register", label: "register_device — создание Producer PDA" },
-  { id: "claim", label: "claim_device — привязка к вашему кошельку" },
-  { id: "provision", label: "provision_device — настройка" },
-  { id: "activate", label: "activate_device — активация" },
+  { id: "register", label: "register_device — creating the Producer PDA" },
+  { id: "claim", label: "claim_device — linking to your wallet" },
+  { id: "provision", label: "provision_device — configuration" },
+  { id: "activate", label: "activate_device — activation" },
 ];
 
 function initialSteps(): RegistrationStepResult[] {
@@ -365,14 +366,14 @@ export interface RegisterDeviceFlowParams {
   deviceId: PublicKey;
   signRegister: (message: Uint8Array) => Promise<Uint8Array>;
   signClaim: (message: Uint8Array) => Promise<Uint8Array>;
-  /** Nonce первого claim (анти-replay). Для нового девайса = 1. */
+  /** Nonce of the first claim (anti-replay). 1 for a new device. */
   claimNonce?: bigint;
 }
 
 /**
- * Полный Plug&Play-флоу: register → claim → provision → activate.
- * Шаги, уже выполненные on-chain (проверяется по состоянию Producer PDA),
- * пропускаются. Каждый шаг — отдельная транзакция с ожиданием подтверждения.
+ * Full Plug&Play flow: register → claim → provision → activate.
+ * Steps already performed on-chain (checked via the Producer PDA state) are
+ * skipped. Each step is a separate transaction awaited to confirmation.
  */
 export async function registerDeviceFlow(
   params: RegisterDeviceFlowParams,
@@ -392,8 +393,8 @@ export async function registerDeviceFlow(
 
     if (status.exists && status.owner && status.owner !== walletPub.toBase58()) {
       throw new Error(
-        `Устройство уже привязано к другому кошельку (${status.owner.slice(0, 8)}…). ` +
-        `Регистрация невозможна без ротации (rotate_device_key).`,
+        `Device is already bound to another wallet (${status.owner.slice(0, 8)}…). ` +
+        `Registration requires a key rotation (rotate_device_key).`,
       );
     }
 
@@ -402,7 +403,7 @@ export async function registerDeviceFlow(
     const needProvision = needClaim || status.state === "Claimed";
     const needActivate = needProvision || status.state === "Provisioned";
 
-    // ── Шаг 1: register (нужна подпись устройства) ──
+    // ── Step 1: register (device signature required) ──
     if (needRegister) {
       const ts = nowTs();
       const message = deviceRegisterMessage(params.deviceId, ts);
@@ -418,10 +419,10 @@ export async function registerDeviceFlow(
       ]);
       set("register", { status: "ok", txid });
     } else {
-      set("register", { status: "skip", error: "PDA уже существует" });
+      set("register", { status: "skip", error: "PDA already exists" });
     }
 
-    // ── Шаг 2: claim (нужна подпись устройства) ──
+    // ── Step 2: claim (device signature required) ──
     if (needClaim) {
       const nonce = params.claimNonce ?? 1n;
       const ts = nowTs();
@@ -438,27 +439,27 @@ export async function registerDeviceFlow(
       ]);
       set("claim", { status: "ok", txid });
     } else {
-      set("claim", { status: "skip", error: "уже привязано" });
+      set("claim", { status: "skip", error: "already bound" });
     }
 
-    // ── Шаг 3: provision (owner-gated) ──
+    // ── Step 3: provision (owner-gated) ──
     if (needProvision) {
       const txid = await sendUserTransaction(params.connection, params.wallet, [
         buildProvisionDeviceIx(programId, { authority: walletPub, producer }),
       ]);
       set("provision", { status: "ok", txid });
     } else {
-      set("provision", { status: "skip", error: "состояние дальше Claimed" });
+      set("provision", { status: "skip", error: "state is beyond Claimed" });
     }
 
-    // ── Шаг 4: activate (owner-gated) ──
+    // ── Step 4: activate (owner-gated) ──
     if (needActivate) {
       const txid = await sendUserTransaction(params.connection, params.wallet, [
         buildActivateDeviceIx(programId, { authority: walletPub, producer, ownerDevices }),
       ]);
       set("activate", { status: "ok", txid });
     } else {
-      set("activate", { status: "skip", error: "состояние дальше Provisioned" });
+      set("activate", { status: "skip", error: "state is beyond Provisioned" });
     }
 
     return { deviceId: params.deviceId.toBase58(), steps };

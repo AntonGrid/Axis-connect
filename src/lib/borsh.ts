@@ -1,8 +1,8 @@
 /**
- * Borsh-совместимые примитивы для сериализации аргументов Anchor-инструкций.
+ * Borsh-compatible primitives for serializing Anchor instruction arguments.
  *
- * Нам нужны только примитивные типы: фиксированные массивы байт (сырые данные,
- * без length-prefix), u8/u64/i64 (8-байтные little-endian).
+ * We only need primitive types: fixed byte arrays (raw data, without a
+ * length-prefix), u8/u64/i64 (8-byte little-endian).
  */
 
 export function concatBytes(...arrays: Uint8Array[]): Uint8Array {

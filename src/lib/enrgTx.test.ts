@@ -40,7 +40,7 @@ describe("enrgTx messages (security/lifecycle.rs mirror)", () => {
   });
 });
 
-describe("enrgTx serialization vs Anchor (эталон из IDL)", () => {
+describe("enrgTx serialization vs Anchor (IDL reference)", () => {
   const provider = new anchor.AnchorProvider(
     new anchor.web3.Connection("http://127.0.0.1:8899"),
     {
@@ -133,7 +133,7 @@ describe("enrgTx ed25519 precompile + PDA", () => {
   });
 });
 
-describe("parseEnergyProducer (полный borsh-парсер)", () => {
+describe("parseEnergyProducer (full borsh parser)", () => {
   it("parses all 13 fields", () => {
     // layout: discr(8) authority(32) device_id(32) nonce(8) energy(8) ts(8)
     // state(1) tier(1) month_energy(8) month_start(8) claim_nonce(8)

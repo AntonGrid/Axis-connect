@@ -2,11 +2,11 @@ import { ENERGY_HISTORY_KEY_PREFIX, ENERGY_HISTORY_MAX_POINTS } from "../config"
 import type { EnergyPoint } from "../types";
 
 /**
- * Локальная история выработки энергии устройства.
- * On-chain в контракте нет почасовой серии (только cumulative/месячное окно),
- * поэтому снапшоты {ts, powerW} пишутся локально при пинге устройства
- * (см. ENERGY_POLL_INTERVAL_MS). При первом запуске — demo-данные (24ч),
- * чтобы график был живым до первого реального отчёта.
+ * Local energy-production history for a device.
+ * The contract has no hourly series on-chain (only cumulative/monthly window),
+ * so {ts, powerW} snapshots are written locally when pinging the device
+ * (see ENERGY_POLL_INTERVAL_MS). On the first launch — demo data (24h),
+ * so the chart is alive until the first real report.
  */
 
 export function energyKey(deviceId: string): string {
@@ -42,8 +42,8 @@ export function appendEnergyPoint(deviceId: string, point: EnergyPoint): EnergyP
 }
 
 /**
- * Demo-данные на 24 часа (синусоидальная генерация, типичная для солнечной
- * панели/инвертора). Создаются один раз, если история пуста.
+ * 24h demo data (sinusoidal generation, typical for a solar panel/inverter).
+ * Created once, if the history is empty.
  */
 export function ensureSeedData(deviceId: string): EnergyPoint[] {
   const existing = getEnergyHistory(deviceId);
@@ -52,15 +52,15 @@ export function ensureSeedData(deviceId: string): EnergyPoint[] {
   const now = Date.now();
   const points: EnergyPoint[] = [];
   const hours = 24;
-  const stepMs = 15 * 60 * 1000; // 15 минут
+  const stepMs = 15 * 60 * 1000; // 15 minutes
   const nowHour = new Date(now).getHours();
 
-  // Начинаем чуть внутри 24ч-окна (23:45 назад), чтобы все точки прошли
-  // фильтр getEnergyHistory (>= now - 24h).
+  // Start slightly inside the 24h window (23:45 ago) so every point passes
+  // the getEnergyHistory filter (>= now - 24h).
   for (let i = hours * 4 - 1; i >= 0; i--) {
     const ts = now - i * stepMs;
     const hour = (nowHour - i / 4 + 24 * 10) % 24;
-    // Солнечная кривая: ночью ~0, пик в 12-14ч.
+    // Solar curve: ~0 at night, peak around 12-14h.
     const daylight = Math.max(0, Math.sin(((hour - 6) / 12) * Math.PI));
     const noise = 0.85 + 0.3 * Math.sin(i * 1.7);
     const powerW = Math.round(daylight * 2400 * noise * 100) / 100;
@@ -71,11 +71,11 @@ export function ensureSeedData(deviceId: string): EnergyPoint[] {
 
 export interface ChartPoint {
   label: string; // "14:00"
-  kw: number; // кВт, округлено
+  kw: number; // kW, rounded
   powerW: number;
 }
 
-/** Почасовая агрегация за последние 24ч для Recharts. */
+/** Hourly aggregation for the last 24h for Recharts. */
 export function toHourlyChart(deviceId: string): ChartPoint[] {
   const points = getEnergyHistory(deviceId);
   if (points.length === 0) return [];

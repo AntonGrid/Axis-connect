@@ -2,27 +2,27 @@ import type { EnergyProducerData } from "../types";
 import { getEnergyHistory } from "./energyHistory";
 
 /**
- * Энергетическая сводка: агрегация из on-chain EnergyProducer +
- * локальных снапшотов. Главная метрика интерфейса — ЭНЕРГИЯ (кВт·ч),
- * токены SRC — следствие (отображаются как «накопленная энергия»).
+ * Energy summary: aggregation of the on-chain EnergyProducer +
+ * local snapshots. The main UI metric is ENERGY (kWh); SRC tokens are a
+ * consequence (displayed as "accumulated energy").
  */
 
-/** Номинальная оценка: 1 SRC ≈ 0.44 кВт·ч (демо/fallback, пока нет данных). */
+/** Nominal estimate: 1 SRC ≈ 0.44 kWh (demo/fallback while there is no data). */
 export const FALLBACK_KWH_PER_SRC = 0.44;
-/** Целевая дневная выработка устройства (для прогресс-бара). */
+/** Target daily production of a device (for the progress bar). */
 export const TODAY_TARGET_KWH = 10;
-/** Порог «мало газа» (SOL), при котором показываем SOL-предупреждение. */
+/** "Low gas" (SOL) threshold — show the SOL warning below this. */
 export const LOW_SOL_THRESHOLD = 0.005;
 
-/** Текущая мощность устройства (последний снапшот), Вт. */
+/** Current device power (last snapshot), W. */
 export function getCurrentPowerW(deviceId: string): number {
   const history = getEnergyHistory(deviceId);
   return history.length > 0 ? history[history.length - 1].powerW : 0;
 }
 
 /**
- * Выработка за сегодня (кВт·ч): интеграл снапшотов мощности по времени.
- * Интервалы длиннее 2ч не учитываются (защита от «скачков» при разрыве).
+ * Today's production (kWh): integral of the power snapshots over time.
+ * Intervals longer than 2h are ignored (protection against "jumps" on gaps).
  */
 export function getTodayKwh(deviceId: string): number {
   const history = getEnergyHistory(deviceId);
@@ -49,14 +49,14 @@ export function getTodayKwh(deviceId: string): number {
   return kwh;
 }
 
-/** Прогресс дневной цели устройства: 0..1 (кап). */
+/** Device daily-goal progress: 0..1 (capped). */
 export function todayProgress(deviceId: string, targetKwh = TODAY_TARGET_KWH): number {
   const kwh = getTodayKwh(deviceId);
   if (targetKwh <= 0 || kwh <= 0) return 0;
   return Math.min(1, kwh / targetKwh);
 }
 
-/** Суммарная выработка всех устройств (кВт·ч): on-chain + локальная оценка. */
+/** Total production of all devices (kWh): on-chain + local estimate. */
 export function getTotalEnergyKwh(
   producers: Array<EnergyProducerData | null>,
   deviceIds: string[],
@@ -65,18 +65,18 @@ export function getTotalEnergyKwh(
   for (const p of producers) {
     if (p) total += Number(p.energyWh) / 1000;
   }
-  // Для устройств без on-chain записи добавляем локальную оценку «за сегодня».
+  // For devices without an on-chain record, add the local "today" estimate.
   const localDevices = deviceIds.filter((_, i) => !producers[i]);
   for (const id of localDevices) total += getTodayKwh(id);
   return total;
 }
 
 /**
- * Производная ставка «кВт·ч за 1 SRC»: из реальных данных, если доступны,
- * иначе — номинальный fallback. Используется для отображения SRC как энергии.
+ * Derived "kWh per 1 SRC" rate: from real data when available,
+ * otherwise the nominal fallback. Used to display SRC as energy.
  */
 export function deriveKwhPerSrc(totalKwh: number, totalSrcRaw: bigint): number {
-  const totalSrc = Number(totalSrcRaw) / 1_000_000_000; // атомарные → SRC
+  const totalSrc = Number(totalSrcRaw) / 1_000_000_000; // atomic → SRC
   if (totalKwh > 0 && totalSrc > 0) return totalKwh / totalSrc;
   return FALLBACK_KWH_PER_SRC;
 }
