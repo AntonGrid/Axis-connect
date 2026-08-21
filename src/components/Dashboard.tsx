@@ -72,14 +72,14 @@ export default function Dashboard({
   const [airdropBusy, setAirdropBusy] = useState(false);
   const [airdropMsg, setAirdropMsg] = useState<string | null>(null);
 
-  // ── Устройства + demo-история ──
+  // ── Devices + demo history ──
   useEffect(() => {
     const list = listRegisteredDevices();
     setDevices(list);
     list.forEach((d) => ensureSeedData(d.deviceId));
   }, []);
 
-  // ── On-chain данные устройств (EnergyProducer) + онлайн/оффлайн ──
+  // ── On-chain device data (EnergyProducer) + online/offline ──
   useEffect(() => {
     if (devices.length === 0) return;
     let cancelled = false;
@@ -112,7 +112,7 @@ export default function Dashboard({
     };
   }, [connection, devices]);
 
-  // ── Балансы (SOL скрыт; нужен только для газа) ──
+  // ── Balances (SOL hidden; only needed for gas) ──
   const refreshBalances = useCallback(async () => {
     const lamports = await getSolBalanceLamports(connection, pubkey);
     setSolLamports(lamports);
@@ -124,7 +124,7 @@ export default function Dashboard({
     void refreshBalances();
   }, [refreshBalances]);
 
-  // ── История начислений SRC ──
+  // ── SRC accrual history ──
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -137,7 +137,7 @@ export default function Dashboard({
       cancelled = true;
     };
   }, [connection, pubkey]);
-  // ── Энергетическая сводка ──
+  // ── Energy summary ──
   const totalKwh = useMemo(() => {
     const prodArr = devices.map((d) => producers[d.deviceId] ?? null);
     return getTotalEnergyKwh(prodArr, devices.map((d) => d.deviceId));
@@ -152,7 +152,7 @@ export default function Dashboard({
     [devices],
   );
 
-  // ── График 24ч (агрегация по устройствам) ──
+  // ── 24h chart (aggregated across devices) ──
   const chartData = useMemo<ChartBucket[]>(() => {
     const buckets = new Map<number, { sum: number; count: number }>();
     for (const d of devices) {
@@ -177,7 +177,7 @@ export default function Dashboard({
       });
   }, [devices]);
 
-  // ── Анимации ──
+  // ── Animations ──
   const totalKwhAnimated = useAnimatedNumber(totalKwh, 1200);
   const srcAnimated = useAnimatedNumber(Number(src) / 1_000_000_000, 800);
 
@@ -189,7 +189,7 @@ export default function Dashboard({
     setAirdropMsg(null);
     try {
       const sig = await requestAirdrop(connection, pubkey, 1);
-      setAirdropMsg(`Airdrop отправлен: ${sig.slice(0, 12)}…`);
+      setAirdropMsg(`Airdrop sent: ${sig.slice(0, 12)}…`);
       await refreshBalances();
     } catch (err) {
       setAirdropMsg(err instanceof Error ? err.message : String(err));
@@ -199,11 +199,11 @@ export default function Dashboard({
   };
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-4 p-4">
-      {/* Шапка */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src="/logo.svg" alt="Axis" className="h-8 w-8" />
-          <h1 className="text-lg font-bold text-ink">Энергия</h1>
+          <h1 className="text-lg font-bold text-ink">Energy</h1>
           <span className="rounded-full bg-soft px-2 py-0.5 text-[10px] text-subtle">
             {network.label}
           </span>
@@ -211,63 +211,63 @@ export default function Dashboard({
         <button
           onClick={onOpenSettings}
           className="rounded-xl border border-edge px-3 py-1.5 text-sm text-mut transition hover:bg-soft"
-          aria-label="Настройки"
+          aria-label="Settings"
         >
           ⚙
         </button>
       </div>
 
-      {/* HERO: выработано энергии */}
+      {/* HERO: energy produced */}
       <div className="relative overflow-hidden rounded-3xl border border-edge bg-gradient-to-br from-axis-accent/15 via-panel to-panel p-5">
         <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-axis-accent/10 blur-2xl" />
-        <p className="text-[11px] uppercase tracking-[0.2em] text-mut">Выработано энергии</p>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-mut">Energy produced</p>
         <div className="mt-1 flex items-baseline gap-2">
           <span className="count-glow text-5xl font-bold tabular-nums tracking-tight text-ink">
             {totalKwhAnimated.toFixed(1)}
           </span>
-          <span className="text-lg font-medium text-mut">кВт·ч</span>
+          <span className="text-lg font-medium text-mut">kWh</span>
         </div>
         <p className="mt-2 text-sm text-axis-success">
-          начислено: {srcAnimated.toFixed(2)} SRC
-          <span className="text-mut"> ≈ {srcKwh.toFixed(1)} кВт·ч</span>
+          earned: {srcAnimated.toFixed(2)} SRC
+          <span className="text-mut"> ≈ {srcKwh.toFixed(1)} kWh</span>
         </p>
 
         {lowGas && (
           <div className="mt-3 rounded-xl border border-axis-warn/40 bg-soft p-3">
-            <p className="text-xs text-axis-warn">⚠️ Недостаточно SOL для комиссий (газа).</p>
+            <p className="text-xs text-axis-warn">⚠️ Not enough SOL for fees (gas).</p>
             <button
               onClick={handleAirdrop}
               disabled={airdropBusy}
               className="mt-2 w-full rounded-lg bg-axis-accent px-3 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-50"
             >
-              {airdropBusy ? "Отправка…" : `Получить 1 SOL (${network.label})`}
+              {airdropBusy ? "Sending…" : `Get 1 SOL (${network.label})`}
             </button>
             {airdropMsg && <p className="mt-1 text-[11px] text-mut">{airdropMsg}</p>}
           </div>
         )}
       </div>
 
-      {/* Добавить устройство — всегда видна */}
+      {/* Add device — always visible */}
       <button
         onClick={onConnectDevice}
         className="rounded-2xl bg-axis-accent px-4 py-4 text-base font-bold text-white shadow-lg shadow-axis-accent/20 transition hover:brightness-110"
       >
-        + Добавить устройство
+        + Add device
       </button>
-      {/* График + текущая мощность */}
+      {/* Chart + current power */}
       <div className="rounded-2xl border border-edge bg-panel p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-mut">Текущая мощность</p>
+            <p className="text-[11px] uppercase tracking-wider text-mut">Current power</p>
             <div className="mt-0.5 flex items-center gap-2">
               <span className="dot-pulse h-2 w-2 rounded-full bg-axis-success" />
               <p className="power-pulse text-3xl font-bold tabular-nums text-axis-accent">
                 {(currentPowerW / 1000).toFixed(2)}
-                <span className="ml-1 text-sm font-normal text-mut">кВт</span>
+                <span className="ml-1 text-sm font-normal text-mut">kW</span>
               </p>
             </div>
           </div>
-          <span className="text-xs text-mut">за 24 часа</span>
+          <span className="text-xs text-mut">over the last 24 hours</span>
         </div>
 
         <div className="mt-3 h-36 w-full">
@@ -309,34 +309,34 @@ export default function Dashboard({
                 <span className="absolute inset-0 m-auto h-2 w-2 rounded-full bg-axis-accent" />
               </div>
               <p className="text-xs text-subtle">
-                Добавьте устройство — здесь появится график выработки
+                Add a device — the production chart will appear here
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* SRC — накопленная энергия */}
+      {/* SRC — accumulated energy */}
       <div className="relative overflow-hidden rounded-2xl border border-edge bg-panel p-4">
-        <p className="text-[11px] uppercase tracking-wider text-mut">SRC · накопленная энергия</p>
+        <p className="text-[11px] uppercase tracking-wider text-mut">SRC · accumulated energy</p>
         <div className="mt-1 flex items-baseline gap-2">
           <p className="text-3xl font-bold tabular-nums text-axis-success">
             {srcAnimated.toFixed(2)}
             <span className="ml-1 text-sm font-normal text-mut">SRC</span>
           </p>
         </div>
-        <p className="mt-1 text-xs text-mut">≈ {srcKwh.toFixed(1)} кВт·ч энергии</p>
+        <p className="mt-1 text-xs text-mut">≈ {srcKwh.toFixed(1)} kWh of energy</p>
         <DripTokens balanceRaw={src} />
       </div>
-      {/* Устройства */}
+      {/* Devices */}
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-ink">Устройства</h2>
+        <h2 className="mb-2 text-sm font-semibold text-ink">Devices</h2>
         {devices.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-edge p-6 text-center">
             <p className="text-3xl">⚡</p>
-            <p className="mt-2 text-sm text-mut">Пока нет устройств</p>
+            <p className="mt-2 text-sm text-mut">No devices yet</p>
             <p className="mt-1 text-xs text-subtle">
-              Отсканируйте QR-код, чтобы подключить генератор энергии
+              Scan the QR code to connect an energy generator
             </p>
           </div>
         ) : (
@@ -363,13 +363,13 @@ export default function Dashboard({
                           onlineNow ? "bg-axis-success/15 text-axis-success" : "bg-soft text-subtle"
                         }`}
                       >
-                        {onlineNow ? "онлайн" : "оффлайн"}
+                        {onlineNow ? "online" : "offline"}
                       </span>
                     </div>
 
                     <p className="mt-2 text-xs text-mut">
-                      Сегодня: <span className="font-semibold text-ink">{todayKwh.toFixed(2)}</span>{" "}
-                      кВт·ч
+                      Today: <span className="font-semibold text-ink">{todayKwh.toFixed(2)}</span>{" "}
+                      kWh
                     </p>
                     <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-soft">
                       <div
@@ -385,12 +385,12 @@ export default function Dashboard({
         )}
       </div>
 
-      {/* История начислений — человеческие метки */}
+      {/* Accrual history — human-friendly labels */}
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-ink">Начисления</h2>
+        <h2 className="mb-2 text-sm font-semibold text-ink">Accruals</h2>
         {txHistory.length === 0 ? (
           <p className="rounded-xl border border-dashed border-edge p-4 text-center text-xs text-subtle">
-            Начислений пока нет. Они появятся, когда устройство начнёт генерировать энергию.
+            No accruals yet. They will appear once a device starts generating energy.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -405,7 +405,7 @@ export default function Dashboard({
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-axis-success">
                       +{srcAmount.toFixed(1)} SRC{" "}
-                      <span className="text-mut">за {kwh.toFixed(1)} кВт·ч{deviceTag}</span>
+                      <span className="text-mut">for {kwh.toFixed(1)} kWh{deviceTag}</span>
                     </p>
                     <p className="text-[10px] text-subtle">
                       {t.timestamp ? new Date(t.timestamp * 1000).toLocaleString() : "—"}
@@ -414,8 +414,8 @@ export default function Dashboard({
                   <span
                     className="shrink-0 text-2xl"
                     role="img"
-                    aria-label="начислено энергии"
-                    title="Начисление энергии"
+                    aria-label="energy accrued"
+                    title="Energy accrual"
                   >
                     ⚡
                   </span>

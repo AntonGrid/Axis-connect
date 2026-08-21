@@ -39,11 +39,11 @@ interface ManualMessage {
 }
 
 /**
- * Экран 3 — Регистрация устройства на Solana.
+ * Screen 3 — Device registration on Solana.
  *
- * Автоматический режим: подписи устройства запрашиваются через локальный
- * HTTP-signer прошивки (mDNS axis-XXXX.local:8080). Если устройство не
- * найдено по сети — ручной fallback через Serial-команду SIGN.
+ * Automatic mode: device signatures are requested via the firmware local
+ * HTTP-signer (mDNS axis-XXXX.local:8080). If the device is not found on the
+ * network — manual fallback via the Serial SIGN command.
  */
 export default function RegisterDevice({ device, wallet, connection, network, onBack, onDone }: Props) {
   const [status, setStatus] = useState<DeviceStatus | null>(null);
@@ -75,12 +75,12 @@ export default function RegisterDevice({ device, wallet, connection, network, on
     return (
       <div className="mx-auto w-full max-w-md p-4">
         <div className="rounded-2xl border border-edge bg-panel p-6 text-center">
-          <p className="text-sm text-mut">Сначала отсканируйте QR устройства.</p>
+          <p className="text-sm text-mut">First, scan the device QR code.</p>
           <button
             onClick={onBack}
             className="mt-4 rounded-xl bg-axis-accent px-4 py-2 text-sm font-semibold text-white"
           >
-            К сканированию
+            To scanning
           </button>
         </div>
       </div>
@@ -98,7 +98,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
       const info = await fetchDeviceSignerInfo(deviceId);
       setSignerInfo(info);
       if (!info) {
-        setError("Устройство не найдено по сети. Проверьте, что девайс и телефон в одной Wi-Fi сети.");
+        setError("Device not found on the network. Make sure the device and the phone are on the same Wi-Fi network.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -109,7 +109,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
 
   const runAuto = async () => {
     if (!signerInfo) {
-      setError("Сначала найдите устройство по сети.");
+      setError("Find the device on the network first.");
       return;
     }
     setRunning(true);
@@ -153,7 +153,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
         });
       }
       if (msgs.length === 0) {
-        setError("Устройство уже полностью зарегистрировано (Active).");
+        setError("The device is already fully registered (Active).");
         return;
       }
       setManualMsgs(msgs);
@@ -170,10 +170,10 @@ export default function RegisterDevice({ device, wallet, connection, network, on
     setOutcome(null);
     try {
       const steps: RegistrationStepResult[] = [
-        { id: "register", label: "register_device — создание Producer PDA", status: "pending" },
-        { id: "claim", label: "claim_device — привязка к вашему кошельку", status: "pending" },
-        { id: "provision", label: "provision_device — настройка", status: "pending" },
-        { id: "activate", label: "activate_device — активация", status: "pending" },
+        { id: "register", label: "register_device — creating the Producer PDA", status: "pending" },
+        { id: "claim", label: "claim_device — linking to your wallet", status: "pending" },
+        { id: "provision", label: "provision_device — configuration", status: "pending" },
+        { id: "activate", label: "activate_device — activation", status: "pending" },
       ];
       const set = (id: string, patch: Partial<RegistrationStepResult>) => {
         const s = steps.find((it) => it.id === id);
@@ -186,7 +186,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
 
       if (needRegister) {
         const sig = hexToBytes(manualSigs.register ?? "");
-        if (sig.length !== 64) throw new Error("Введите hex-подпись register (64 байта)");
+        if (sig.length !== 64) throw new Error("Enter a register hex signature (64 bytes)");
         const msg = deviceRegisterMessage(deviceId, ts);
         const ix = buildRegisterDeviceIx(
           ENRG_PROGRAM_ID,
@@ -204,7 +204,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
 
       if (needClaim) {
         const sig = hexToBytes(manualSigs.claim ?? "");
-        if (sig.length !== 64) throw new Error("Введите hex-подпись claim (64 байта)");
+        if (sig.length !== 64) throw new Error("Enter a claim hex signature (64 bytes)");
         const nonce = BigInt(manualMsgs.find((m) => m.kind === "claim")?.nonce ?? "1");
         const msg = deviceClaimMessage(deviceId, wallet.publicKey, nonce, ts);
         const ix = buildClaimDeviceIx(
@@ -221,7 +221,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
         set("claim", { status: "skip" });
       }
 
-      // owner-gated шаги не требуют подписей устройства.
+      // owner-gated steps do not require device signatures.
       if (needRegister || needClaim || status?.state === "Claimed") {
         const txid = await sendUserTransaction(connection, wallet, [
           buildProvisionDeviceIx(ENRG_PROGRAM_ID, { authority: wallet.publicKey, producer }),
@@ -261,14 +261,14 @@ export default function RegisterDevice({ device, wallet, connection, network, on
           disabled={running}
           className="rounded-xl border border-edge px-3 py-2 text-sm text-mut hover:bg-soft disabled:opacity-40"
         >
-          ← Назад
+          ← Back
         </button>
-        <h1 className="text-lg font-bold text-white">Регистрация</h1>
+        <h1 className="text-lg font-bold text-white">Registration</h1>
         <span className="w-16" />
       </div>
 
       <div className="rounded-2xl border border-edge bg-panel p-4">
-        <p className="text-xs uppercase tracking-wide text-subtle">Устройство из QR</p>
+        <p className="text-xs uppercase tracking-wide text-subtle">Device from the QR code</p>
         <p className="mt-1 break-all font-mono text-sm text-axis-accent">{deviceId.toBase58()}</p>
         <p className="mt-1 text-[11px] text-subtle">schema: {device.payload.schema}</p>
         <p className="mt-1 break-all text-[11px] text-subtle">Producer PDA: {producer.toBase58()}</p>
@@ -276,10 +276,10 @@ export default function RegisterDevice({ device, wallet, connection, network, on
 
       {status && (
         <div className="rounded-xl border border-edge bg-panel px-4 py-2 text-xs text-mut">
-          On-chain статус: <span className="font-semibold text-white">{status.state}</span>
+          On-chain status: <span className="font-semibold text-white">{status.state}</span>
           {status.owner && status.owner !== wallet.publicKey.toBase58() && (
             <span className="mt-1 block text-axis-danger">
-              Владелец: {status.owner.slice(0, 8)}… — устройство занято другим кошельком
+              Owner: {status.owner.slice(0, 8)}… — the device is bound to another wallet
             </span>
           )}
         </div>
@@ -288,7 +288,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
       {outcome && (
         <div className="rounded-2xl border border-edge bg-panel p-4">
           <h2 className={`text-sm font-bold ${allOk ? "text-axis-success" : "text-axis-warn"}`}>
-            {allOk ? "Устройство зарегистрировано и активно! 🎉" : "Регистрация завершилась с ошибками"}
+            {allOk ? "Device registered and active! 🎉" : "Registration finished with errors"}
           </h2>
           <ul className="mt-3 flex flex-col gap-2">
             {outcome.steps.map((s) => (
@@ -329,7 +329,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
           onClick={() => onDone(deviceId.toBase58())}
           className="rounded-2xl bg-axis-success px-4 py-3 font-semibold text-white hover:brightness-110"
         >
-          В дашборд
+          To dashboard
         </button>
       )}
       {!allOk && (
@@ -339,19 +339,19 @@ export default function RegisterDevice({ device, wallet, connection, network, on
             disabled={checking || running}
             className="rounded-xl border border-edge px-4 py-3 text-sm font-medium text-mut hover:bg-soft disabled:opacity-50"
           >
-            {checking ? "Поиск устройства…" : "Найти устройство по сети"}
+            {checking ? "Searching…" : "Find device on the network"}
           </button>
 
           {signerInfo && (
             <div className="rounded-xl border border-axis-success/40 bg-panel px-4 py-2 text-xs text-mut">
-              Устройство найдено: <span className="font-mono">{signerInfo.deviceId}</span>
+              Device found: <span className="font-mono">{signerInfo.deviceId}</span>
               {signerInfo.firmware ? ` · fw ${signerInfo.firmware}` : ""}
             </div>
           )}
           {!signerInfo && (
             <p className="text-center text-[11px] text-subtle">
-              Не нашли? Устройство доступно по mDNS axis-XXXX.local после настройки Wi-Fi
-              (прошивка с Captive Portal). Или используйте ручной режим через Serial.
+              Not found? The device is available via mDNS axis-XXXX.local after Wi-Fi setup
+              (firmware with a Captive Portal). Or use the manual mode via Serial.
             </p>
           )}
 
@@ -360,7 +360,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
             disabled={!signerInfo || running}
             className="rounded-2xl bg-axis-accent px-4 py-3 font-semibold text-white hover:brightness-110 disabled:opacity-50"
           >
-            {running ? "Регистрация…" : "Регистрировать автоматически"}
+            {running ? "Registering…" : "Register automatically"}
           </button>
 
           <button
@@ -368,14 +368,14 @@ export default function RegisterDevice({ device, wallet, connection, network, on
             disabled={running}
             className="rounded-xl border border-edge px-4 py-2 text-sm text-mut hover:bg-soft disabled:opacity-40"
           >
-            Ручной режим (Serial SIGN)
+            Manual mode (Serial SIGN)
           </button>
 
           {showManual && (
             <div className="flex flex-col gap-3 rounded-2xl border border-edge bg-panel p-4">
               <p className="text-xs text-mut">
-                В мониторе ESP32 выполните <code className="text-axis-accent">SIGN {"<hex>"}</code> для
-                каждого сообщения и вставьте подписи (sig_hex) ниже.
+                In the ESP32 monitor, run <code className="text-axis-accent">SIGN {"<hex>"}</code> for
+                each message and paste the signatures (sig_hex) below.
               </p>
               {manualMsgs.map((m) => (
                 <div key={m.kind} className="rounded-xl bg-soft p-3">
@@ -384,7 +384,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
                   <input
                     value={manualSigs[m.kind] ?? ""}
                     onChange={(e) => setManualSigs((p) => ({ ...p, [m.kind]: e.target.value.trim() }))}
-                    placeholder="sig_hex (64 байта / 128 символов)"
+                    placeholder="sig_hex (64 bytes / 128 chars)"
                     className="mt-2 w-full rounded-lg border border-edge bg-soft p-2 font-mono text-[11px] text-ink outline-none focus:border-axis-accent"
                   />
                 </div>
@@ -394,7 +394,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
                 disabled={running}
                 className="rounded-xl bg-axis-accent px-4 py-3 font-semibold text-white hover:brightness-110 disabled:opacity-50"
               >
-                {running ? "Отправка…" : "Отправить с ручными подписями"}
+                {running ? "Sending…" : "Send with manual signatures"}
               </button>
             </div>
           )}

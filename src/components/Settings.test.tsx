@@ -34,16 +34,16 @@ describe("Settings", () => {
   it("export key reveals secret after click", async () => {
     const user = userEvent.setup();
     render(<Settings {...baseProps} />);
-    await user.click(screen.getByRole("button", { name: /Экспорт приватного ключа/ }));
-    expect(screen.getByText(/полный доступ к средствам/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Export private key/ }));
+    expect(screen.getByText(/full access to your funds/)).toBeInTheDocument();
   });
 
   it("delete wallet requires confirmation", async () => {
     const user = userEvent.setup();
     const onDeleteWallet = vi.fn();
     render(<Settings {...baseProps} onDeleteWallet={onDeleteWallet} />);
-    await user.click(screen.getByRole("button", { name: /Удалить кошелёк/ }));
-    await user.click(screen.getByRole("button", { name: /Удалить/ }));
+    await user.click(screen.getByRole("button", { name: /Delete wallet/ }));
+    await user.click(screen.getByRole("button", { name: /Delete/ }));
     expect(onDeleteWallet).toHaveBeenCalledTimes(1);
   });
 });

@@ -6,7 +6,7 @@ import { Keypair } from "@solana/web3.js";
 import { NETWORKS } from "../config";
 import Dashboard from "./Dashboard";
 
-// Recharts в jsdom не может измерить контейнер — заменяем на заглушку.
+// Recharts cannot measure the container in jsdom — replace with a stub.
 vi.mock("recharts", () => {
   const React = require("react") as typeof import("react");
   const Dummy = ({ children }: { children?: React.ReactNode }) =>
@@ -22,7 +22,7 @@ vi.mock("recharts", () => {
   };
 });
 
-// html5-qrcode в jsdom — заглушка (нужна при рендере App, здесь не используется).
+// html5-qrcode in jsdom — a stub (needed when rendering App; unused here).
 vi.mock("html5-qrcode", () => ({
   Html5Qrcode: class {
     isScanning = false;
@@ -38,8 +38,8 @@ const wallet = Keypair.generate();
 
 function stubConnection(): Connection {
   return {
-    getBalance: vi.fn().mockResolvedValue(1_000_000_000), // 1 SOL — газа хватает
-    getAccountInfo: vi.fn().mockResolvedValue(null), // Producer PDA не существует
+    getBalance: vi.fn().mockResolvedValue(1_000_000_000), // 1 SOL — gas is sufficient
+    getAccountInfo: vi.fn().mockResolvedValue(null), // Producer PDA does not exist
     getTokenAccountBalance: vi.fn().mockRejectedValue(new Error("no ata")),
     getSignaturesForAddress: vi.fn().mockResolvedValue([]),
     getParsedTransaction: vi.fn().mockResolvedValue(null),
@@ -58,35 +58,35 @@ const baseProps = {
   onOpenSettings: vi.fn(),
 };
 
-describe("Dashboard (энергетический дашборд)", () => {
-  it("главная метрика — энергия; SOL скрыт", async () => {
+describe("Dashboard (energy)", () => {
+  it("main metric is energy; SOL is hidden", async () => {
     render(<Dashboard {...baseProps} />);
-    expect(await screen.findByText("Выработано энергии")).toBeInTheDocument();
-    expect(screen.getAllByText(/кВт·ч/).length).toBeGreaterThan(0);
-    // SOL не показывается (газа хватает).
-    expect(screen.queryByText(/Недостаточно SOL/)).not.toBeInTheDocument();
-    // Кнопка добавления устройства всегда видна.
-    expect(screen.getByRole("button", { name: /Добавить устройство/ })).toBeInTheDocument();
+    expect(await screen.findByText("Energy produced")).toBeInTheDocument();
+    expect(screen.getAllByText(/kWh/).length).toBeGreaterThan(0);
+    // SOL is not shown (gas is sufficient).
+    expect(screen.queryByText(/Not enough SOL/)).not.toBeInTheDocument();
+    // The add-device button is always visible.
+    expect(screen.getByRole("button", { name: /Add device/ })).toBeInTheDocument();
   });
 
-  it("пустые состояния: нет устройств, нет начислений, placeholder графика", async () => {
+  it("empty states: no devices, no accruals, chart placeholder", async () => {
     render(<Dashboard {...baseProps} />);
-    expect(await screen.findByText(/Пока нет устройств/)).toBeInTheDocument();
-    expect(screen.getByText(/Начислений пока нет/)).toBeInTheDocument();
+    expect(await screen.findByText(/No devices yet/)).toBeInTheDocument();
+    expect(screen.getByText(/No accruals yet/)).toBeInTheDocument();
     expect(
-      screen.getByText(/Добавьте устройство — здесь появится график выработки/),
+      screen.getByText(/Add a device — the production chart will appear here/),
     ).toBeInTheDocument();
-    expect(screen.getByText("Текущая мощность")).toBeInTheDocument();
+    expect(screen.getByText("Current power")).toBeInTheDocument();
   });
 
-  it("показывает SOL-предупреждение при нехватке газа", async () => {
+  it("shows the SOL warning when gas is low", async () => {
     const conn = stubConnection();
     (conn.getBalance as ReturnType<typeof vi.fn>).mockResolvedValue(1_000_000); // 0.001 SOL
     render(<Dashboard {...baseProps} connection={conn} />);
-    expect(await screen.findByText(/Недостаточно SOL/)).toBeInTheDocument();
+    expect(await screen.findByText(/Not enough SOL/)).toBeInTheDocument();
   });
 
-  it("устройство отображается карточкой с прогресс-баром", async () => {
+  it("device is shown as a card with a progress bar", async () => {
     const deviceId = wallet.publicKey.toBase58();
     localStorage.setItem(
       "axis-connect.devices.v1",
@@ -96,19 +96,19 @@ describe("Dashboard (энергетический дашборд)", () => {
     expect(
       await screen.findByText(`ESP32-${deviceId.slice(-4).toUpperCase()}`),
     ).toBeInTheDocument();
-    expect(screen.getByText("оффлайн")).toBeInTheDocument();
-    expect(screen.getByText(/Сегодня:/)).toBeInTheDocument();
+    expect(screen.getByText("offline")).toBeInTheDocument();
+    expect(screen.getByText(/Today:/)).toBeInTheDocument();
   });
 
-  it("CTA открывает сканер", async () => {
+  it("CTA opens the scanner", async () => {
     const user = userEvent.setup();
     const onConnectDevice = vi.fn();
     render(<Dashboard {...baseProps} onConnectDevice={onConnectDevice} />);
-    await user.click(screen.getByRole("button", { name: /Добавить устройство/ }));
+    await user.click(screen.getByRole("button", { name: /Add device/ }));
     expect(onConnectDevice).toHaveBeenCalledTimes(1);
   });
 
-  it("клик по устройству открывает детали", async () => {
+  it("clicking a device opens its details", async () => {
     const user = userEvent.setup();
     const onOpenDevice = vi.fn();
     const deviceId = wallet.publicKey.toBase58();

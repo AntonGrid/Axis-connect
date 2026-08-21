@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
-  /** Текущий остаток SRC (атомарные единицы). Капли появляются при росте. */
+  /** Current SRC balance (atomic units). Drops appear when it grows. */
   balanceRaw: bigint;
-  /** Сколько капель показать за одно начисление. */
+  /** How many drops to show per accrual. */
   count?: number;
 }
 
 /**
- * «Капающие» токены: при увеличении баланса SRC на карточке появляются
- * падающие анимированные капли (см. keyframes dripFall в index.css).
- * Чисто визуальный элемент — никакой логики начислений.
+ * "Dripping" tokens: when the SRC balance on a card increases, animated drops
+ * fall down (see keyframes dripFall in index.css).
+ * Purely visual — no accrual logic.
  */
 export default function DripTokens({ balanceRaw, count = 5 }: Props) {
   const prevRef = useRef(balanceRaw);

@@ -13,7 +13,7 @@ interface Props {
   onBack: () => void;
 }
 
-const INITIAL_ENERGY_PER_SRC = 1_000_000; // 1 МВт·ч = 1 SRC (v7.0 emission)
+const INITIAL_ENERGY_PER_SRC = 1_000_000; // 1 MWh = 1 SRC (v7.0 emission)
 
 export default function DeviceScreen({ deviceId, connection, onBack }: Props) {
   const pubkey = useMemo(() => new PublicKey(deviceId), [deviceId]);
@@ -43,7 +43,7 @@ export default function DeviceScreen({ deviceId, connection, onBack }: Props) {
     ensureSeedData(deviceId);
   }, [deviceId]);
 
-  // Последний снапшот мощности (локальная история).
+  // Latest power snapshot (local history).
   const history = getEnergyHistory(deviceId);
   const lastPowerW = history.length > 0 ? history[history.length - 1].powerW : 0;
   const totalKwh = producer ? Number(producer.energyWh) / 1000 : 0;
@@ -63,50 +63,50 @@ export default function DeviceScreen({ deviceId, connection, onBack }: Props) {
           onClick={onBack}
           className="rounded-xl border border-edge px-3 py-2 text-sm text-mut transition hover:bg-soft"
         >
-          ← Назад
+          ← Back
         </button>
-        <h1 className="text-lg font-bold text-ink">Устройство</h1>
+        <h1 className="text-lg font-bold text-ink">Device</h1>
         <span
           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
             online ? "bg-axis-success/15 text-axis-success" : "bg-soft text-subtle"
           }`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${online ? "bg-axis-success" : "bg-subtle"}`} />
-          {online ? "онлайн" : "оффлайн"}
+          {online ? "online" : "offline"}
         </span>
       </div>
 
       <div className="rounded-2xl border border-edge bg-panel p-4">
-        <p className="text-xs uppercase tracking-wide text-mut">Публичный ключ устройства</p>
+        <p className="text-xs uppercase tracking-wide text-mut">Device public key</p>
         <p className="mt-1 break-all font-mono text-xs text-ink">{deviceId}</p>
         <p className="mt-2 break-all font-mono text-[10px] text-subtle">PDA: {pda.toBase58()}</p>
       </div>
 
-      {/* Метрики */}
+      {/* Metrics */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-edge bg-panel p-4">
-          <p className="text-xs text-mut">Текущая мощность</p>
+          <p className="text-xs text-mut">Current power</p>
           <p className="mt-1 text-2xl font-bold text-ink">
             {(lastPowerW / 1000).toFixed(2)}
-            <span className="ml-1 text-sm font-normal text-mut">кВт</span>
+            <span className="ml-1 text-sm font-normal text-mut">kW</span>
           </p>
         </div>
         <div className="rounded-2xl border border-edge bg-panel p-4">
-          <p className="text-xs text-mut">Всего энергии</p>
+          <p className="text-xs text-mut">Total energy</p>
           <p className="mt-1 text-2xl font-bold text-axis-accent">
             {totalKwh.toFixed(1)}
-            <span className="ml-1 text-sm font-normal text-mut">кВт·ч</span>
+            <span className="ml-1 text-sm font-normal text-mut">kWh</span>
           </p>
         </div>
         <div className="rounded-2xl border border-edge bg-panel p-4">
-          <p className="text-xs text-mut">За месяц</p>
+          <p className="text-xs text-mut">This month</p>
           <p className="mt-1 text-2xl font-bold text-ink">
             {monthKwh.toFixed(1)}
-            <span className="ml-1 text-sm font-normal text-mut">кВт·ч</span>
+            <span className="ml-1 text-sm font-normal text-mut">kWh</span>
           </p>
         </div>
         <div className="rounded-2xl border border-edge bg-panel p-4">
-          <p className="text-xs text-mut">Начислено токенов (≈)</p>
+          <p className="text-xs text-mut">Tokens accrued (≈)</p>
           <p className="mt-1 text-2xl font-bold text-axis-success">
             {estSrc.toFixed(3)}
             <span className="ml-1 text-sm font-normal text-mut">SRC</span>
@@ -114,47 +114,47 @@ export default function DeviceScreen({ deviceId, connection, onBack }: Props) {
         </div>
       </div>
 
-      {/* On-chain статус */}
+      {/* On-chain status */}
       <div className="rounded-xl border border-edge bg-panel px-4 py-2 text-xs text-mut">
         {producer ? (
           <>
-            Состояние: <span className="font-semibold text-ink">{producer.state}</span> · Тир:{" "}
+            State: <span className="font-semibold text-ink">{producer.state}</span> · Tier:{" "}
             <span className="font-semibold text-ink">{producer.tier}</span> · Nonce:{" "}
             <span className="font-mono">{producer.nonce.toString()}</span>
-            {producer.revoked && <span className="ml-1 text-axis-danger">· отозвано</span>}
+            {producer.revoked && <span className="ml-1 text-axis-danger">· revoked</span>}
           </>
         ) : (
           <span className="text-subtle">
-            Не зарегистрировано on-chain (Producer PDA не создан)
+            Not registered on-chain (Producer PDA not created)
           </span>
         )}
       </div>
-      {/* Отключить */}
+      {/* Disconnect */}
       {!confirming ? (
         <button
           onClick={() => setConfirming(true)}
           className="rounded-xl border border-axis-danger/50 px-4 py-3 text-sm font-medium text-axis-danger transition hover:bg-axis-danger/10"
         >
-          Отключить устройство
+          Disconnect device
         </button>
       ) : (
         <div className="rounded-2xl border border-axis-danger/40 bg-panel p-4">
           <p className="text-xs text-mut">
-            Устройство будет удалено из списка этого приложения. On-chain запись (Producer PDA)
-            сохранится — при необходимости используйте ротацию/revoke через протокол.
+            The device will be removed from this app's list. The on-chain record (Producer PDA)
+            will remain — use rotation/revoke through the protocol if needed.
           </p>
           <div className="mt-3 flex gap-2">
             <button
               onClick={() => setConfirming(false)}
               className="flex-1 rounded-xl border border-edge px-4 py-2 text-sm text-mut transition hover:bg-soft"
             >
-              Отмена
+              Cancel
             </button>
             <button
               onClick={handleDisconnect}
               className="flex-1 rounded-xl bg-axis-danger px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
             >
-              Отключить
+              Disconnect
             </button>
           </div>
         </div>

@@ -19,7 +19,7 @@ export default function App() {
       const saved = localStorage.getItem(STORAGE_KEYS.network);
       if (saved) return networkById(JSON.parse(saved) as NetworkConfig["id"]);
     } catch {
-      /* повреждённое значение — берём дефолт */
+      /* corrupted value — use the default */
     }
     return networkById(DEFAULT_NETWORK_ID);
   });
@@ -32,7 +32,7 @@ export default function App() {
 
   const connection = useMemo(() => createConnection(network.rpcUrl), [network]);
 
-  // Применяем тему на <html>.
+  // Apply the theme to <html>.
   useEffect(() => {
     document.documentElement.classList.toggle("light", theme === "light");
     document.documentElement.classList.toggle("dark", theme !== "light");
@@ -120,25 +120,25 @@ export default function App() {
         )}
       </main>
 
-      {/* Нижняя навигация */}
+      {/* Bottom navigation */}
       <nav className="border-t border-edge bg-panel/90 px-4 py-2 backdrop-blur">
         <div className="mx-auto flex max-w-md items-center justify-around">
           <NavButton
             active={screen === "dashboard"}
             onClick={() => setScreen("dashboard")}
-            label="Дашборд"
+            label="Dashboard"
             icon="▦"
           />
           <NavButton
             active={screen === "scanner"}
             onClick={() => setScreen("scanner")}
-            label="Сканер"
+            label="Scanner"
             icon="◉"
           />
           <NavButton
             active={screen === "settings"}
             onClick={() => setScreen("settings")}
-            label="Настройки"
+            label="Settings"
             icon="⚙"
           />
         </div>
