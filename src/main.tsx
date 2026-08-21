@@ -6,10 +6,10 @@ import App from "./App";
 import { getTheme } from "./lib/theme";
 import { initPushNotifications } from "./lib/notifications";
 
-// Применить сохранённую тему до первого рендера (без FOUC).
+// Apply the saved theme before the first render (no FOUC).
 getTheme() === "light" && document.documentElement.classList.add("light");
 
-// SW регистрирует vite-plugin-pwa (injectRegister: auto). Push-стаб.
+// SW is registered by vite-plugin-pwa (injectRegister: auto). Push stub.
 void initPushNotifications();
 
 const rootEl = document.getElementById("root");

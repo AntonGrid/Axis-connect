@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Axis/ENRG Plug & Play PWA — сканирование QR устройства, локальный некастодиальный Solana-кошелёк, on-chain регистрация энерго-девайсов.",
+  "description": "Axis/ENRG Plug & Play PWA — scan a device QR, local non-custodial Solana wallet, on-chain energy-device registration.",
   "scripts": {
     "dev": "vite",
     "dev:https": "HTTPS=1 vite",

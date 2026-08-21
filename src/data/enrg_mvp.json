@@ -56,7 +56,7 @@
         {
           "name": "owner_devices",
           "docs": [
-            "Per-owner registry — лимит активных устройств (BLOCK 4)."
+            "Per-owner registry — active-device limit (BLOCK 4)."
           ],
           "writable": true,
           "pda": {
@@ -146,8 +146,8 @@
     {
       "name": "allocate_founder",
       "docs": [
-        "Одноразовый founder-премайн при launch: mint 2e17 на founder ATA,",
-        "засчёт в vault.total_supply с проверкой MAX_SUPPLY_ATOMIC."
+        "One-shot founder premine at launch: mint 2e17 to the founder ATA,",
+        "counted in vault.total_supply with a MAX_SUPPLY_ATOMIC check."
       ],
       "discriminator": [
         195,
@@ -163,7 +163,7 @@
         {
           "name": "vault",
           "docs": [
-            "Vault PDA — глобальное состояние протокола (total_supply/max_supply)."
+            "Vault PDA — global protocol state (total_supply/max_supply)."
           ],
           "writable": true,
           "pda": {
@@ -184,7 +184,7 @@
         {
           "name": "token_mint",
           "docs": [
-            "TokenMint PDA — конфигурация токена (founder ATA + одноразовый флаг)."
+            "TokenMint PDA — token configuration (founder ATA + one-shot flag)."
           ],
           "writable": true,
           "pda": {
@@ -210,7 +210,7 @@
         {
           "name": "mint",
           "docs": [
-            "SRC Mint (writable — CPI token::mint_to увеличивает supply)."
+            "SRC Mint (writable — the CPI token::mint_to increases supply)."
           ],
           "writable": true,
           "pda": {
@@ -260,14 +260,14 @@
         {
           "name": "founder_token_account",
           "docs": [
-            "Founder ATA — получатель премайна (владелец = FOUNDER_WALLET)."
+            "Founder ATA — premine recipient (owner = FOUNDER_WALLET)."
           ],
           "writable": true
         },
         {
           "name": "payer",
           "docs": [
-            "Подписант — обязан быть FOUNDER_WALLET."
+            "Signer — must be FOUNDER_WALLET."
           ],
           "signer": true
         },
@@ -316,7 +316,7 @@
         {
           "name": "authority",
           "docs": [
-            "Временный governor — Vault.authority (BLOCK 3: убрали \"Anyone can burn\")."
+            "Temporary governor — Vault.authority (BLOCK 3: removed \"Anyone can burn\")."
           ],
           "signer": true
         },
@@ -422,7 +422,7 @@
         {
           "name": "authority",
           "docs": [
-            "Кошелёк, которому устройство привязывается (новый authority)."
+            "The wallet the device is bound to (new authority)."
           ],
           "writable": true,
           "signer": true
@@ -430,8 +430,8 @@
         {
           "name": "producer",
           "docs": [
-            "PDA device record. Seeds выведены из stored device_id — подмена",
-            "записи или привязка к чужому устройству невозможны."
+            "PDA device record. Seeds are derived from the stored device_id —",
+            "substituting the record or binding to a foreign device is impossible."
           ],
           "writable": true,
           "pda": {
@@ -460,8 +460,8 @@
         {
           "name": "owner_devices",
           "docs": [
-            "Per-owner registry — создаётся при первом claim (BLOCK 4:",
-            "лимит устройств на владельца)."
+            "Per-owner registry — created on the first claim (BLOCK 4:",
+            "device-per-owner limit)."
           ],
           "writable": true,
           "pda": {
@@ -494,7 +494,7 @@
         {
           "name": "instructions",
           "docs": [
-            "устройства ДОЛЖНА быть в транзакции перед этой инструкцией."
+            "device signature MUST be in the transaction before this instruction."
           ]
         },
         {
@@ -567,15 +567,15 @@
         {
           "name": "founder_ata",
           "docs": [
-            "Источник — тот же founder ATA, на который был заминчен премайн",
-            "(владелец — FOUNDER_WALLET). Токены нельзя вывести откуда-либо ещё."
+            "Source — the same founder ATA where the premine was minted",
+            "(owner — FOUNDER_WALLET). Tokens cannot be withdrawn from anywhere else."
           ],
           "writable": true
         },
         {
           "name": "destination_ata",
           "docs": [
-            "Куда переводим — ATA кошелька основателя."
+            "Destination — the founder wallet ATA."
           ],
           "writable": true
         },
@@ -681,7 +681,7 @@
         {
           "name": "prev_proposal",
           "docs": [
-            "Предыдущее активное предложение (передаётся при существующем активном)."
+            "The previous active proposal (passed when one is active)."
           ],
           "writable": true,
           "optional": true
@@ -746,7 +746,7 @@
     {
       "name": "distribute_pool",
       "docs": [
-        "Пропорциональное распределение пула при достижении порога (v7.0 §14)."
+        "Proportional pool distribution when the threshold is reached (v7.0 §14)."
       ],
       "discriminator": [
         197,
@@ -875,7 +875,7 @@
         {
           "name": "authority",
           "docs": [
-            "Инициатор — pool authority."
+            "Initiator — pool authority."
           ],
           "writable": true,
           "signer": true
@@ -886,7 +886,7 @@
     {
       "name": "ers_premium_access",
       "docs": [
-        "Премиум-доступ к ENRG Market по ERS (v7.0 §16, §30)."
+        "Premium access to ENRG Market by ERS (v7.0 §16, §30)."
       ],
       "discriminator": [
         118,
@@ -1014,7 +1014,7 @@
         {
           "name": "token_mint",
           "docs": [
-            "TokenMint PDA — конфигурация токена."
+            "TokenMint PDA — token configuration."
           ],
           "pda": {
             "seeds": [
@@ -1039,7 +1039,7 @@
         {
           "name": "mint",
           "docs": [
-            "SRC Mint (writable — CPI token::mint_to увеличивает supply)."
+            "SRC Mint (writable — the CPI token::mint_to increases supply)."
           ],
           "writable": true,
           "pda": {
@@ -1089,7 +1089,7 @@
         {
           "name": "destination",
           "docs": [
-            "ATA получателя: тот же mint, владелец == proposer."
+            "Recipient ATA: same mint, owner == proposer."
           ],
           "writable": true
         },
@@ -1180,7 +1180,7 @@
         {
           "name": "authority",
           "docs": [
-            "Владелец устройства (authority producer'а)."
+            "Device owner (producer authority)."
           ],
           "writable": true,
           "signer": true,
@@ -1296,7 +1296,7 @@
         {
           "name": "vault",
           "docs": [
-            "Vault PDA — глобальное состояние протокола и владелец всех Token Accounts."
+            "Vault PDA — global protocol state and owner of all Token Accounts."
           ],
           "writable": true,
           "pda": {
@@ -1317,7 +1317,7 @@
         {
           "name": "token_mint",
           "docs": [
-            "TokenMint PDA — хранит все конфигурационные адреса токена."
+            "TokenMint PDA — holds all token configuration addresses."
           ],
           "writable": true,
           "pda": {
@@ -1366,7 +1366,7 @@
         {
           "name": "vault_authority",
           "docs": [
-            "Vault PDA как токенный авторити для всех протокольных ATA."
+            "Vault PDA as the token authority for all protocol ATAs."
           ],
           "pda": {
             "seeds": [
@@ -1386,29 +1386,29 @@
         {
           "name": "buyback_account",
           "docs": [
-            "Buyback ATA — принадлежит Vault PDA.",
-            "Должен быть создан заранее."
+            "Buyback ATA — owned by the Vault PDA.",
+            "Must be created in advance."
           ],
           "writable": true
         },
         {
           "name": "staking_account",
           "docs": [
-            "Staking rewards ATA — принадлежит Vault PDA."
+            "Staking rewards ATA — owned by the Vault PDA."
           ],
           "writable": true
         },
         {
           "name": "dao_account",
           "docs": [
-            "DAO treasury ATA — принадлежит Vault PDA."
+            "DAO treasury ATA — owned by the Vault PDA."
           ],
           "writable": true
         },
         {
           "name": "emergency_account",
           "docs": [
-            "Emergency reserve ATA — принадлежит Vault PDA."
+            "Emergency reserve ATA — owned by the Vault PDA."
           ],
           "writable": true
         },
@@ -1594,8 +1594,8 @@
     {
       "name": "initialize_policy_registry",
       "docs": [
-        "Инициализация Policy Registry (PDA [b\"policy-registry\"]).",
-        "Только EXPECTED_DEPLOYER. Дефолты = поведение протокола до Policy Engine."
+        "Initialize the Policy Registry (PDA [b\"policy-registry\"]).",
+        "EXPECTED_DEPLOYER only. Defaults = pre-Policy Engine protocol behavior."
       ],
       "discriminator": [
         46,
@@ -1642,7 +1642,7 @@
         {
           "name": "authority",
           "docs": [
-            "Protocol deployer (H-2-паттерн: защита от front-running захвата)."
+            "Protocol deployer (H-2 pattern: front-running capture protection)."
           ],
           "writable": true,
           "signer": true
@@ -1657,7 +1657,7 @@
     {
       "name": "initialize_reputation",
       "docs": [
-        "Инициализация Reputation PDA (v7.0 §16 — Energy Reputation Score)."
+        "Initialize the Reputation PDA (v7.0 §16 — Energy Reputation Score)."
       ],
       "discriminator": [
         150,
@@ -1986,8 +1986,8 @@
         {
           "name": "pool_share",
           "docs": [
-            "Вклад участника пула (PDA [b\"pool-share\", pool, producer]) —",
-            "создаётся при первом join (v7.0 §14)."
+            "Pool member contribution (PDA [b\"pool-share\", pool, producer]) —",
+            "created on the first join (v7.0 §14)."
           ],
           "writable": true,
           "pda": {
@@ -2079,7 +2079,7 @@
         {
           "name": "owner_devices",
           "docs": [
-            "Per-owner registry — счётчик активных устройств (BLOCK 4)."
+            "Per-owner registry — active-device counter (BLOCK 4)."
           ],
           "writable": true,
           "pda": {
@@ -2219,37 +2219,37 @@
         {
           "name": "user_token_account",
           "docs": [
-            "Мульти-владельческий mint: награда идёт ВЛАДЕЛЬЦУ устройства",
-            "(producer.authority), а не подписанту транзакции (оракулу).",
-            "user token account должен принадлежать producer.authority."
+            "Multi-owner mint: the reward goes to the DEVICE OWNER",
+            "(producer.authority), not to the transaction signer (oracle).",
+            "The user token account must belong to producer.authority."
           ],
           "writable": true
         },
         {
           "name": "buyback_account",
           "docs": [
-            "Протокольный buyback-фонд — жёстко привязан к конфигурации TokenMint."
+            "Protocol buyback fund — strictly bound to the TokenMint configuration."
           ],
           "writable": true
         },
         {
           "name": "staking_account",
           "docs": [
-            "Протокольный staking-фонд — жёстко привязан к конфигурации TokenMint."
+            "Protocol staking fund — strictly bound to the TokenMint configuration."
           ],
           "writable": true
         },
         {
           "name": "dao_account",
           "docs": [
-            "Протокольный DAO-фонд — жёстко привязан к конфигурации TokenMint."
+            "Protocol DAO fund — strictly bound to the TokenMint configuration."
           ],
           "writable": true
         },
         {
           "name": "emergency_account",
           "docs": [
-            "Протокольный emergency-фонд — жёстко привязан к конфигурации TokenMint."
+            "Protocol emergency fund — strictly bound to the TokenMint configuration."
           ],
           "writable": true
         },
@@ -2296,9 +2296,9 @@
         {
           "name": "authority",
           "docs": [
-            "Подписант транзакции: владелец устройства ИЛИ доверенный оракул из",
-            "отчёта (мульти-владельческий mint). Сам по себе награду не получает —",
-            "она идёт producer.authority (см. user_token_account)."
+            "Transaction signer: the device owner OR a trusted oracle from the",
+            "report (multi-owner mint). It does not receive the reward itself —",
+            "the reward goes to producer.authority (see user_token_account)."
           ],
           "signer": true
         },
@@ -2334,8 +2334,8 @@
         {
           "name": "reputation",
           "docs": [
-            "ERS (v7.0 §16) — опционально: если передан, обновляется после минта.",
-            "Привязан к владельцу устройства (producer.authority)."
+            "ERS (v7.0 §16) — optional: if provided, updated after the mint.",
+            "Bound to the device owner (producer.authority)."
           ],
           "writable": true,
           "optional": true,
@@ -2367,8 +2367,8 @@
         {
           "name": "pool",
           "docs": [
-            "Pool (v7.0 §14) — опционально: если producer является участником,",
-            "вклад записывается в pool.total_energy и pool_share.energy_wh."
+            "Pool (v7.0 §14) — optional: if the producer is a member,",
+            "the contribution is recorded in pool.total_energy and pool_share.energy_wh."
           ],
           "writable": true,
           "optional": true
@@ -2376,7 +2376,7 @@
         {
           "name": "pool_share",
           "docs": [
-            "Вклад участника пула (PDA [b\"pool-share\", pool, producer])."
+            "Pool member contribution (PDA [b\"pool-share\", pool, producer])."
           ],
           "writable": true,
           "optional": true
@@ -2384,10 +2384,10 @@
         {
           "name": "policy_registry",
           "docs": [
-            "Policy Registry (ADR-0003): адресуемые политики минта. Опционально —",
-            "если PDA [b\"policy-registry\"] не инициализирован, применяются дефолтные",
-            "политики протокола (полная обратная совместимость с существующими",
-            "деплоями и устройствами)."
+            "Policy Registry (ADR-0003): addressable mint policies. Optional —",
+            "if the PDA [b\"policy-registry\"] is not initialized, the protocol",
+            "default policies apply (full backward compatibility with existing",
+            "deployments and devices)."
           ],
           "optional": true,
           "pda": {
@@ -2525,7 +2525,7 @@
         {
           "name": "owner_devices",
           "docs": [
-            "Per-owner registry — счётчик активных устройств (BLOCK 4)."
+            "Per-owner registry — active-device counter (BLOCK 4)."
           ],
           "writable": true,
           "pda": {
@@ -2574,7 +2574,7 @@
         {
           "name": "operator",
           "docs": [
-            "Оператор: инициирует регистрацию и платит rent."
+            "Operator: initiates registration and pays the rent."
           ],
           "writable": true,
           "signer": true
@@ -2582,7 +2582,7 @@
         {
           "name": "producer",
           "docs": [
-            "PDA device record, жёстко привязан к device_id."
+            "PDA device record, strictly bound to device_id."
           ],
           "writable": true,
           "pda": {
@@ -2610,13 +2610,13 @@
         {
           "name": "device_id",
           "docs": [
-            "Используется только для вывода PDA seeds."
+            "Used only for deriving PDA seeds."
           ]
         },
         {
           "name": "instructions",
           "docs": [
-            "устройства ДОЛЖНА быть в транзакции перед этой инструкцией."
+            "device signature MUST be in the transaction before this instruction."
           ]
         },
         {
@@ -2694,10 +2694,10 @@
         {
           "name": "registry",
           "docs": [
-            "Единственный легитимный ManifestRegistry (PDA программы).",
-            "Издатель манифеста обязан быть `oracle_authority` реестра — доверенной",
-            "стороной (ADR-0004/ADR-0007). Это закрывает «любой может зарегистрировать",
-            "произвольный манифест» (аудит 2026-08-18, P0-1)."
+            "The only legitimate ManifestRegistry (program PDA).",
+            "The manifest publisher must be the registry `oracle_authority` — a trusted",
+            "party (ADR-0004/ADR-0007). This closes the \"anyone can register an",
+            "arbitrary manifest\" gap (audit 2026-08-18, P0-1)."
           ],
           "pda": {
             "seeds": [
@@ -2734,7 +2734,7 @@
         {
           "name": "instructions",
           "docs": [
-            "издателя ДОЛЖНА быть в транзакции перед этой инструкцией."
+            "publisher signature MUST be in the transaction before this instruction."
           ]
         },
         {
@@ -2834,7 +2834,7 @@
         {
           "name": "owner_devices",
           "docs": [
-            "Per-owner registry — счётчик активных устройств (BLOCK 4)."
+            "Per-owner registry — active-device counter (BLOCK 4)."
           ],
           "writable": true,
           "pda": {
@@ -2924,7 +2924,7 @@
     {
       "name": "report_anomaly",
       "docs": [
-        "Фиксация аномалии профиля генерации доверенным оракулом (v7.0 §27)."
+        "Record a generation profile anomaly by a trusted oracle (v7.0 §27)."
       ],
       "discriminator": [
         202,
@@ -3020,7 +3020,7 @@
         {
           "name": "authority",
           "docs": [
-            "Владелец устройства ИЛИ протокольный админ (vault.authority)."
+            "Device owner OR protocol admin (vault.authority)."
           ],
           "signer": true
         },
@@ -3053,9 +3053,9 @@
         {
           "name": "owner_devices",
           "docs": [
-            "Per-owner registry — счётчик активных устройств (BLOCK 4).",
-            "Опционально: для незаклеймленных устройств (authority == default)",
-            "аккаунта владельца может не существовать (админ-отзыв)."
+            "Per-owner registry — active-device counter (BLOCK 4).",
+            "Optional: for unclaimed devices (authority == default)",
+            "the owner account may not exist (admin revocation)."
           ],
           "writable": true,
           "optional": true,
@@ -3090,9 +3090,9 @@
         {
           "name": "vault",
           "docs": [
-            "Vault — протокольный админ (vault.authority) может отозвать устройство",
-            "(ADR-0005: «by owner or system»). Опционален: owner-отзыв работает без",
-            "vault (обратная совместимость)."
+            "Vault — the protocol admin (vault.authority) can revoke a device",
+            "(ADR-0005: \"by owner or system\"). Optional: owner revocation works",
+            "without the vault (backward compatibility)."
           ],
           "optional": true,
           "pda": {
@@ -3116,8 +3116,8 @@
     {
       "name": "rotate_device_key",
       "docs": [
-        "Ротация ключа устройства (ADR-0007): owner/admin меняет device_id.",
-        "Новый ключ обязан подписать b\"enrg:device:rotate\" || ... (PoP)."
+        "Device key rotation (ADR-0007): owner/admin changes the device_id.",
+        "The new key MUST sign b\"enrg:device:rotate\" || ... (PoP)."
       ],
       "discriminator": [
         96,
@@ -3133,8 +3133,8 @@
         {
           "name": "authority",
           "docs": [
-            "Владелец устройства ИЛИ протокольный админ (vault.authority).",
-            "mut — т.к. является payer для init новой записи."
+            "Device owner OR protocol admin (vault.authority).",
+            "mut — it is the payer for the init of the new record."
           ],
           "writable": true,
           "signer": true
@@ -3142,7 +3142,7 @@
         {
           "name": "old_producer",
           "docs": [
-            "Текущая запись устройства (PDA от старого device_id)."
+            "Current device record (PDA of the old device_id)."
           ],
           "writable": true,
           "pda": {
@@ -3171,13 +3171,13 @@
         {
           "name": "new_device_id",
           "docs": [
-            "Новый публичный ключ устройства (Ed25519, 32 байта) — новый seed PDA."
+            "New device public key (Ed25519, 32 bytes) — new PDA seed."
           ]
         },
         {
           "name": "new_producer",
           "docs": [
-            "Новая запись устройства (PDA от нового device_id) — наследует состояние."
+            "New device record (PDA of the new device_id) — inherits the state."
           ],
           "writable": true,
           "pda": {
@@ -3205,8 +3205,8 @@
         {
           "name": "vault",
           "docs": [
-            "Vault — проверка админ-роли (authority == vault.authority).",
-            "Опционален: owner-ротация работает без vault (обратная совместимость)."
+            "Vault — admin-role check (authority == vault.authority).",
+            "Optional: owner rotation works without the vault (backward compatibility)."
           ],
           "optional": true,
           "pda": {
@@ -3259,7 +3259,7 @@
     {
       "name": "set_device_tier",
       "docs": [
-        "Назначение/смена tier устройства (v7.0 §15 — Trust Levels)."
+        "Assign/change the device tier (v7.0 §15 — Trust Levels)."
       ],
       "discriminator": [
         101,
@@ -3338,7 +3338,7 @@
     {
       "name": "set_oracle_admin",
       "docs": [
-        "Смена oracle_admin (управление списком оракулов). Только protocol admin."
+        "Change oracle_admin (manage the oracle list). Protocol admin only."
       ],
       "discriminator": [
         42,
@@ -3452,7 +3452,7 @@
     {
       "name": "set_policy_authority",
       "docs": [
-        "Смена администратора политик (далее — передача роли под Governance ADR-0009)."
+        "Change the policy administrator (role may later go to Governance ADR-0009)."
       ],
       "discriminator": [
         247,
@@ -3508,7 +3508,7 @@
     {
       "name": "set_vault_authority",
       "docs": [
-        "Смена Vault.authority (protocol admin / временный governor)."
+        "Change Vault.authority (protocol admin / temporary governor)."
       ],
       "discriminator": [
         19,
@@ -3744,7 +3744,7 @@
     {
       "name": "update_policy",
       "docs": [
-        "Обновление набора политик (authority реестра)."
+        "Update the policy set (registry authority)."
       ],
       "discriminator": [
         212,
@@ -3817,7 +3817,7 @@
         {
           "name": "registry",
           "docs": [
-            "Единственный легитимный ManifestRegistry (PDA программы)."
+            "The only legitimate ManifestRegistry (program PDA)."
           ],
           "pda": {
             "seeds": [
@@ -4021,8 +4021,8 @@
     {
       "name": "withdraw_fund",
       "docs": [
-        "Вывод SRC из протокольного фонда (buyback/staking/dao/emergency)",
-        "на ATA получателя. Только Vault.authority (временный governor)."
+        "Withdraw SRC from a protocol fund (buyback/staking/dao/emergency)",
+        "to the recipient ATA. Vault.authority only (temporary governor)."
       ],
       "discriminator": [
         251,
@@ -4038,7 +4038,7 @@
         {
           "name": "vault",
           "docs": [
-            "Vault PDA — глобальное состояние протокола (проверка authority)."
+            "Vault PDA — global protocol state (authority check)."
           ],
           "pda": {
             "seeds": [
@@ -4058,7 +4058,7 @@
         {
           "name": "token_mint",
           "docs": [
-            "TokenMint PDA — хранит адреса фондовых ATA."
+            "TokenMint PDA — holds the fund ATA addresses."
           ],
           "pda": {
             "seeds": [
@@ -4083,27 +4083,27 @@
         {
           "name": "authority",
           "docs": [
-            "Временный governor — Vault.authority."
+            "Temporary governor — Vault.authority."
           ],
           "signer": true
         },
         {
           "name": "fund_account",
           "docs": [
-            "ATA конкретного фонда (источник вывода)."
+            "ATA of the specific fund (withdrawal source)."
           ],
           "writable": true
         },
         {
           "name": "fund_authority",
           "docs": [
-            "через seeds. Соответствие тегу проверяется в handler."
+            "via seeds. The tag match is checked in the handler."
           ]
         },
         {
           "name": "destination",
           "docs": [
-            "ATA получателя (для того же mint)."
+            "Recipient ATA (for the same mint)."
           ],
           "writable": true
         },
@@ -5217,7 +5217,7 @@
       "name": "DeviceClaimed",
       "docs": [
         "Emitted when a device is claimed by an owner",
-        "(ADR-0005: REGISTERED → CLAIMED; требует Ed25519-подпись устройства)."
+        "(ADR-0005: REGISTERED → CLAIMED; requires the device Ed25519 signature)."
       ],
       "type": {
         "kind": "struct",
@@ -5245,8 +5245,8 @@
       "name": "DeviceKeyRotated",
       "docs": [
         "Emitted when a device key is rotated (ADR-0007).",
-        "Старая запись помечается revoked/rotated_to; новая запись наследует",
-        "состояние (nonce, энергия, tier, owner)."
+        "The old record is marked revoked/rotated_to; the new record inherits the",
+        "state (nonce, energy, tier, owner)."
       ],
       "type": {
         "kind": "struct",
@@ -5254,28 +5254,28 @@
           {
             "name": "device_id",
             "docs": [
-              "Старый (отозванный) device_id."
+              "Old (revoked) device_id."
             ],
             "type": "pubkey"
           },
           {
             "name": "new_device_id",
             "docs": [
-              "Новый device_id (публичный ключ устройства)."
+              "New device_id (device public key)."
             ],
             "type": "pubkey"
           },
           {
             "name": "owner",
             "docs": [
-              "Владелец (authority) — остаётся прежним."
+              "Owner (authority) — stays the same."
             ],
             "type": "pubkey"
           },
           {
             "name": "changed_by",
             "docs": [
-              "Кто инициировал ротацию (owner или протокольный админ)."
+              "Who initiated the rotation (owner or protocol admin)."
             ],
             "type": "pubkey"
           },
@@ -5362,7 +5362,7 @@
       "name": "DeviceRegistered",
       "docs": [
         "Emitted when a device is registered",
-        "(ADR-0005: UNREGISTERED → REGISTERED; требует Ed25519-подпись устройства)."
+        "(ADR-0005: UNREGISTERED → REGISTERED; requires the device Ed25519 signature)."
       ],
       "type": {
         "kind": "struct",
@@ -5465,11 +5465,11 @@
     {
       "name": "DeviceTier",
       "docs": [
-        "Уровень доверия устройства (v7.0 §15 — Device Trust Levels).",
+        "Device trust level (v7.0 §15 — Device Trust Levels).",
         "",
-        "Влияет на лимиты майнинга: Basic ≤ 100 kWh/мес, Verified ≤ 10 MWh/мес,",
-        "Industrial / Institutional — без ограничений. Тир назначается протокольным",
-        "администратором (Vault authority) через `set_device_tier`."
+        "Affects minting limits: Basic ≤ 100 kWh/month, Verified ≤ 10 MWh/month,",
+        "Industrial / Institutional — no limits. The tier is assigned by the protocol",
+        "administrator (Vault authority) via `set_device_tier`."
       ],
       "type": {
         "kind": "enum",
@@ -5553,10 +5553,10 @@
       "docs": [
         "Core device identity.",
         "",
-        "Хранит только базовую on-chain логику протокола.",
-        "Метаданные устройства (мощность, тип, локация) и",
-        "скользящее окно энергии (30 days) вынесены в",
-        "отдельную программу — enrg-profile (EnergyProfile PDA).",
+        "Stores only the base on-chain protocol logic.",
+        "Device metadata (power, type, location) and the",
+        "rolling energy window (30 days) live in a separate",
+        "program — enrg-profile (EnergyProfile PDA).",
         "",
         "Seeds: [b\"producer\", device_id.key().as_ref()]"
       ],
@@ -5566,42 +5566,42 @@
           {
             "name": "authority",
             "docs": [
-              "Владелец устройства (wallet)."
+              "Device owner (wallet)."
             ],
             "type": "pubkey"
           },
           {
             "name": "device_id",
             "docs": [
-              "Публичный ключ физического устройства (Ed25519)."
+              "Public key of the physical device (Ed25519)."
             ],
             "type": "pubkey"
           },
           {
             "name": "nonce",
             "docs": [
-              "Последний использованный nonce (защита от replay)."
+              "Last used nonce (replay protection)."
             ],
             "type": "u64"
           },
           {
             "name": "energy_wh",
             "docs": [
-              "Суммарная подтверждённая энергия за всё время (Wh)."
+              "Total confirmed energy of all time (Wh)."
             ],
             "type": "u64"
           },
           {
             "name": "timestamp",
             "docs": [
-              "Временная метка последнего подтверждённого репорта."
+              "Timestamp of the last confirmed report."
             ],
             "type": "i64"
           },
           {
             "name": "state",
             "docs": [
-              "Текущее состояние устройства (Device Lifecycle, ADR-0005)."
+              "Current device state (Device Lifecycle, ADR-0005)."
             ],
             "type": {
               "defined": {
@@ -5612,7 +5612,7 @@
           {
             "name": "tier",
             "docs": [
-              "Уровень доверия устройства (v7.0 §15) — лимиты майнинга."
+              "Device trust level (v7.0 §15) — minting limits."
             ],
             "type": {
               "defined": {
@@ -5623,46 +5623,46 @@
           {
             "name": "month_energy_wh",
             "docs": [
-              "Подтверждённая энергия за текущий месяц (Wh) — для tier-лимита."
+              "Confirmed energy for the current month (Wh) — for the tier limit."
             ],
             "type": "u64"
           },
           {
             "name": "month_start_ts",
             "docs": [
-              "Начало текущего месячного окна (unix ts) — для tier-лимита."
+              "Start of the current monthly window (unix ts) — for the tier limit."
             ],
             "type": "i64"
           },
           {
             "name": "claim_nonce",
             "docs": [
-              "Монотонный nonce последнего claim-сообщения (защита от replay).",
-              "Отдельно от `nonce` (proof-nonce отчётов): claim и proof не пересекаются."
+              "Monotonic nonce of the last claim message (replay protection).",
+              "Separate from `nonce` (proof nonce of reports): claim and proof do not overlap."
             ],
             "type": "u64"
           },
           {
             "name": "claimed_at",
             "docs": [
-              "Временная метка успешного claim (аудит, ADR-0002)."
+              "Timestamp of a successful claim (audit, ADR-0002)."
             ],
             "type": "i64"
           },
           {
             "name": "revoked",
             "docs": [
-              "Флаг отзыва (ADR-0007). После revoke/rotate — true: устройство не может",
-              "минтить и менять состояние. Дублирует terminal-состояние",
-              "DeviceState::Revoked для defense-in-depth и простых проверок."
+              "Revocation flag (ADR-0007). After revoke/rotate — true: the device cannot",
+              "mint or change state. Duplicates the terminal state",
+              "DeviceState::Revoked for defense-in-depth and simple checks."
             ],
             "type": "bool"
           },
           {
             "name": "rotated_to",
             "docs": [
-              "При ротации ключа (ADR-0007) — новый device_id. Pubkey::default(), если",
-              "ротации не было. Аудит-след old → new."
+              "On key rotation (ADR-0007) — the new device_id. Pubkey::default() if no",
+              "rotation happened. Audit trail old → new."
             ],
             "type": "pubkey"
           }
@@ -5814,11 +5814,11 @@
     {
       "name": "GovernanceState",
       "docs": [
-        "Единый governance-аккаунт (PDA [b\"governance\"]).",
+        "Single governance account (PDA [b\"governance\"]).",
         "",
-        "Двухуровневая модель: `authority` (владелец контракта) + `members`",
-        "(3–5 адресов, имеющих право голоса). `authority` создаёт предложения",
-        "и управляет списком members; члены голосуют."
+        "Two-level model: `authority` (contract owner) + `members`",
+        "(3–5 addresses with voting rights). `authority` creates proposals",
+        "and manages the members list; members vote."
       ],
       "type": {
         "kind": "struct",
@@ -5826,14 +5826,14 @@
           {
             "name": "authority",
             "docs": [
-              "Текущий владелец контракта (создаёт предложения, управляет members)."
+              "Current contract owner (creates proposals, manages members)."
             ],
             "type": "pubkey"
           },
           {
             "name": "members",
             "docs": [
-              "Список членов с правом голоса (3..=GOVERNANCE_MEMBER_MAX)."
+              "Members with voting rights (3..=GOVERNANCE_MEMBER_MAX)."
             ],
             "type": {
               "vec": "pubkey"
@@ -5842,14 +5842,14 @@
           {
             "name": "proposal_count",
             "docs": [
-              "Счётчик созданных предложений (монотонный)."
+              "Counter of created proposals (monotonic)."
             ],
             "type": "u64"
           },
           {
             "name": "active_proposal_id",
             "docs": [
-              "id активного предложения (0 = нет активного; одно активное в момент времени)."
+              "id of the active proposal (0 = none active; one active at a time)."
             ],
             "type": "u64"
           }
@@ -5955,7 +5955,7 @@
           {
             "name": "manifest_id",
             "docs": [
-              "ID манифеста (совпадает с UUID из off-chain реестра)"
+              "Manifest ID (matches the UUID from the off-chain registry)"
             ],
             "type": {
               "array": [
@@ -5967,7 +5967,7 @@
           {
             "name": "publisher_key",
             "docs": [
-              "ED25519 публичный ключ издателя (32 байта)"
+              "ED25519 public key of the publisher (32 bytes)"
             ],
             "type": {
               "array": [
@@ -5979,7 +5979,7 @@
           {
             "name": "content_hash",
             "docs": [
-              "Хеш содержимого манифеста (Keccak256, 32 байта)"
+              "Manifest content hash (Keccak256, 32 bytes)"
             ],
             "type": {
               "array": [
@@ -5991,7 +5991,7 @@
           {
             "name": "signature",
             "docs": [
-              "ED25519 подпись (64 байта)"
+              "ED25519 signature (64 bytes)"
             ],
             "type": {
               "array": [
@@ -6003,28 +6003,28 @@
           {
             "name": "created_at",
             "docs": [
-              "Timestamp публикации"
+              "Publication timestamp"
             ],
             "type": "i64"
           },
           {
             "name": "verified",
             "docs": [
-              "Статус верификации"
+              "Verification status"
             ],
             "type": "bool"
           },
           {
             "name": "manifest_version",
             "docs": [
-              "Версия схемы манифеста"
+              "Manifest schema version"
             ],
             "type": "u8"
           },
           {
             "name": "reserved",
             "docs": [
-              "Reserved для будущих расширений"
+              "Reserved for future extensions"
             ],
             "type": {
               "array": [
@@ -6243,7 +6243,7 @@
     {
       "name": "OracleAdminChanged",
       "docs": [
-        "Emitted when the oracle admin role changes (BLOCK 2 — разделение ролей)."
+        "Emitted when the oracle admin role changes (BLOCK 2 — role separation)."
       ],
       "type": {
         "kind": "struct",
@@ -6309,9 +6309,9 @@
           {
             "name": "oracle_admin",
             "docs": [
-              "Oracle admin — управляет списком доверенных оракулов.",
-              "Разделение ролей: protocol_admin (vault/funds/безопасность)",
-              "vs oracle_admin (add/remove оракулов)."
+              "Oracle admin — manages the list of trusted oracles.",
+              "Role separation: protocol_admin (vault/funds/security)",
+              "vs oracle_admin (add/remove oracles)."
             ],
             "type": "pubkey"
           },
@@ -6350,10 +6350,10 @@
         "This is the only trusted object accepted",
         "by the ENRG Protocol Core.",
         "",
-        "Отчёт аутентифицирован ДВУМЯ подписями:",
-        "- `device_signature` — устройство подтверждает (device_id, nonce, device_timestamp, energy_wh);",
-        "- `oracle_signature` — доверенный оракул подтверждает, что он верифицировал",
-        "данные устройства (device_id, nonce, device_timestamp, verified_at, energy_wh)."
+        "The report is authenticated by TWO signatures:",
+        "- `device_signature` — the device confirms (device_id, nonce, device_timestamp, energy_wh);",
+        "- `oracle_signature` — the trusted oracle confirms that it verified the",
+        "device data (device_id, nonce, device_timestamp, verified_at, energy_wh)."
       ],
       "type": {
         "kind": "struct",
@@ -6430,14 +6430,14 @@
     {
       "name": "OwnerDevices",
       "docs": [
-        "Per-owner device registry — счётчик устройств владельца.",
+        "Per-owner device registry — counter of the owner's devices.",
         "",
         "Seeds: [b\"owner-devices\", owner.key().as_ref()]",
-        "Создаётся при первом claim устройства владельцем (init_if_needed).",
+        "Created on the owner's first device claim (init_if_needed).",
         "",
-        "Лимит активных устройств на одного владельца (BLOCK 4 аудита) защищает",
-        "от «дробления» устройств — массовой регистрации мелких device_id с целью",
-        "обхода лимитов/манипуляций экономикой."
+        "The active-devices-per-owner limit (audit BLOCK 4) protects against",
+        "device \"fragmentation\" — mass registration of small device_ids to",
+        "bypass limits or manipulate the economy."
       ],
       "type": {
         "kind": "struct",
@@ -6445,21 +6445,21 @@
           {
             "name": "owner",
             "docs": [
-              "Владелец устройств (wallet)."
+              "Owner of the devices (wallet)."
             ],
             "type": "pubkey"
           },
           {
             "name": "total_claimed",
             "docs": [
-              "Всего устройств, заявленных (claimed) владельцем за всё время."
+              "Total devices claimed by the owner of all time."
             ],
             "type": "u64"
           },
           {
             "name": "active_count",
             "docs": [
-              "Текущее число устройств владельца в состоянии Active."
+              "Current number of the owner's devices in the Active state."
             ],
             "type": "u64"
           }
@@ -6494,18 +6494,18 @@
       "docs": [
         "Policy Registry (ADR-0003).",
         "",
-        "On-chain набор политик, определяющих допустимость Proof'ов и минта.",
-        "`mint_energy` (Verifier) **не принимает решений** — он исполняет политики,",
-        "адресуемые этим реестром. Это устраняет документированное отклонение",
-        "«verifier+policy co-location» (см. `instructions/mint.rs`).",
+        "On-chain set of policies that determine which Proofs and mints are allowed.",
+        "`mint_energy` (Verifier) **does not make decisions** — it executes the",
+        "policies addressed by this registry. This removes the documented",
+        "\"verifier+policy co-location\" deviation (see `instructions/mint.rs`).",
         "",
         "PDA: seeds = [b\"policy-registry\"]",
         "",
-        "**Обратная совместимость:** аккаунт опционален в `MintEnergy`. Если PDA",
-        "не инициализирован, применяются дефолтные политики протокола — поведение",
-        "идентично версии до Policy Engine. После инициализации политики задаются",
-        "через `update_policy` (authority реестра, далее может быть передан под",
-        "Governance ADR-0009 через `set_policy_authority`)."
+        "**Backward compatibility:** the account is optional in `MintEnergy`. If the",
+        "PDA is not initialized, the protocol default policies apply — behavior",
+        "identical to the pre-Policy Engine version. After initialization, policies",
+        "are set via `update_policy` (registry authority; may later be handed over",
+        "to Governance ADR-0009 via `set_policy_authority`)."
       ],
       "type": {
         "kind": "struct",
@@ -6513,44 +6513,44 @@
           {
             "name": "authority",
             "docs": [
-              "Администратор политик. Изначально — `EXPECTED_DEPLOYER`; смена через",
-              "`set_policy_authority` (возможна передача роли под Governance ADR-0009)."
+              "Policy administrator. Initially — `EXPECTED_DEPLOYER`; change via",
+              "`set_policy_authority` (the role may be handed over to Governance ADR-0009)."
             ],
             "type": "pubkey"
           },
           {
             "name": "mint_enabled",
             "docs": [
-              "Глобальный выключатель минта (maintenance / pause).",
-              "`false` → `mint_energy` отклоняет все Proof'ы (`MintPaused`)."
+              "Global mint switch (maintenance / pause).",
+              "`false` → `mint_energy` rejects all Proofs (`MintPaused`)."
             ],
             "type": "bool"
           },
           {
             "name": "enforce_oracle_whitelist",
             "docs": [
-              "Проверка членства `report.oracle` в `OracleRegistry` (C-0)."
+              "Check that `report.oracle` is a member of `OracleRegistry` (C-0)."
             ],
             "type": "bool"
           },
           {
             "name": "enforce_device_state",
             "docs": [
-              "Gating по состоянию устройства (ADR-0005: mint только из `Active`)."
+              "Device-state gating (ADR-0005: mint only from `Active`)."
             ],
             "type": "bool"
           },
           {
             "name": "enforce_tier_limits",
             "docs": [
-              "Tier-лимиты месяца (v7.0 §15)."
+              "Monthly tier limits (v7.0 §15)."
             ],
             "type": "bool"
           },
           {
             "name": "enforce_energy_caps",
             "docs": [
-              "Ограничение энергии за proof: `≤ rated_power × max_energy_bps / 10_000`."
+              "Energy cap per proof: `≤ rated_power × max_energy_bps / 10_000`."
             ],
             "type": "bool"
           },
@@ -6564,29 +6564,29 @@
           {
             "name": "max_energy_bps",
             "docs": [
-              "Максимальная энергия за proof в базисных пунктах от `rated_power`",
-              "(10_000 == 100 %). Дефолт — 10_000 (как в версии до Policy Engine)."
+              "Maximum energy per proof in basis points of `rated_power`",
+              "(10_000 == 100%). Default — 10_000 (as in the pre-Policy Engine version)."
             ],
             "type": "u64"
           },
           {
             "name": "max_clock_skew_sec",
             "docs": [
-              "Допустимый сдвиг часов (сек) для freshness-проверки `verified_at`."
+              "Allowed clock skew (sec) for the `verified_at` freshness check."
             ],
             "type": "i64"
           },
           {
             "name": "version",
             "docs": [
-              "Версия набора политик (инкремент при каждом обновлении)."
+              "Policy-set version (incremented on every update)."
             ],
             "type": "u64"
           },
           {
             "name": "updated_at",
             "docs": [
-              "Timestamp последнего обновления (unix, сек)."
+              "Timestamp of the last update (unix, sec)."
             ],
             "type": "i64"
           },
@@ -6622,7 +6622,7 @@
     {
       "name": "PolicyUpdate",
       "docs": [
-        "Полный срез обновляемых политик (передаётся в `update_policy`)."
+        "Full snapshot of the updatable policies (passed to `update_policy`)."
       ],
       "type": {
         "kind": "struct",
@@ -6772,8 +6772,8 @@
     {
       "name": "PoolContribution",
       "docs": [
-        "Вклад участника пула (v7.0 §14) — накопленная энергия для пропорционального",
-        "распределения при достижении порога.",
+        "Pool member contribution (v7.0 §14) — accumulated energy for proportional",
+        "distribution when the threshold is reached.",
         "",
         "Seeds: [b\"pool-share\", pool.key().as_ref(), producer.key().as_ref()]"
       ],
@@ -6783,35 +6783,35 @@
           {
             "name": "pool",
             "docs": [
-              "Pool, к которому относится вклад."
+              "Pool this contribution belongs to."
             ],
             "type": "pubkey"
           },
           {
             "name": "producer",
             "docs": [
-              "Producer (устройство) — участник пула."
+              "Producer (device) — pool member."
             ],
             "type": "pubkey"
           },
           {
             "name": "energy_wh",
             "docs": [
-              "Накопленная верифицированная энергия (Wh) с момента последнего распределения."
+              "Accumulated verified energy (Wh) since the last distribution."
             ],
             "type": "u128"
           },
           {
             "name": "updated_at",
             "docs": [
-              "Время последнего обновления."
+              "Time of the last update."
             ],
             "type": "i64"
           },
           {
             "name": "bump",
             "docs": [
-              "Bump seed для PDA."
+              "Bump seed for the PDA."
             ],
             "type": "u8"
           }
@@ -6948,10 +6948,10 @@
     {
       "name": "Proposal",
       "docs": [
-        "Governance-предложение (PDA [b\"proposal\", id.to_le_bytes()]).",
+        "Governance proposal (PDA [b\"proposal\", id.to_le_bytes()]).",
         "",
-        "`member_snapshot_count` фиксируется при создании (кворум считается от него).",
-        "Эмиссия после одобрения и timelock — через `governance_mint`."
+        "`member_snapshot_count` is fixed at creation (quorum is computed from it).",
+        "Emission after approval and timelock happens via `governance_mint`."
       ],
       "type": {
         "kind": "struct",
@@ -6959,35 +6959,35 @@
           {
             "name": "id",
             "docs": [
-              "Монотонный id (== GovernanceState.proposal_count на момент создания)."
+              "Monotonic id (== GovernanceState.proposal_count at creation time)."
             ],
             "type": "u64"
           },
           {
             "name": "proposer",
             "docs": [
-              "Authority, создавший предложение (получатель в `destination` — его ATA)."
+              "Authority that created the proposal (the recipient in `destination` is its ATA)."
             ],
             "type": "pubkey"
           },
           {
             "name": "title",
             "docs": [
-              "Заголовок/короткий payload (≤ PROPOSAL_TITLE_MAX_LEN байт)."
+              "Title / short payload (≤ PROPOSAL_TITLE_MAX_LEN bytes)."
             ],
             "type": "string"
           },
           {
             "name": "amount_atomic",
             "docs": [
-              "Запрашиваемая эмиссия в атомарных единицах (≤ PROPOSAL_AMOUNT_MAX_ATOMIC)."
+              "Requested emission in atomic units (≤ PROPOSAL_AMOUNT_MAX_ATOMIC)."
             ],
             "type": "u64"
           },
           {
             "name": "destination",
             "docs": [
-              "ATA получателя (mint == SRC mint; owner == proposer)."
+              "Recipient ATA (mint == SRC mint; owner == proposer)."
             ],
             "type": "pubkey"
           },
@@ -7014,7 +7014,7 @@
           {
             "name": "yes_votes",
             "docs": [
-              "Количество голосов «за» / «против»."
+              "Vote counts: \"for\" / \"against\"."
             ],
             "type": "u32"
           },
@@ -7025,14 +7025,14 @@
           {
             "name": "member_snapshot_count",
             "docs": [
-              "Размер списка members на момент создания (для расчёта кворума)."
+              "Size of the members list at creation time (for quorum calculation)."
             ],
             "type": "u32"
           },
           {
             "name": "voted_members",
             "docs": [
-              "Адреса проголосовавших членов (однократное голосование)."
+              "Addresses of members who voted (single vote each)."
             ],
             "type": {
               "vec": "pubkey"
@@ -7044,7 +7044,7 @@
     {
       "name": "ProposalStatus",
       "docs": [
-        "Статус предложения (ADR-0009)."
+        "Proposal status (ADR-0009)."
       ],
       "type": {
         "kind": "enum",
@@ -7072,13 +7072,13 @@
       "docs": [
         "Energy Reputation Score (v7.0 §16).",
         "",
-        "Репутационный PDA на производителя (владельца). Учитывает:",
-        "- длительность безотказной работы (uptime),",
-        "- объём верифицированной энергии,",
-        "- отсутствие аномалий профиля генерации (штрафы через `report_anomaly`).",
+        "Reputation PDA for a producer (owner). Takes into account:",
+        "- uptime without failures,",
+        "- volume of verified energy,",
+        "- absence of generation profile anomalies (penalties via `report_anomaly`).",
         "",
-        "Высокий ERS даёт преимущество при распределении наград в пуле",
-        "(взвешивание долей, см. pool.rs) и доступ к премиальным функциям",
+        "A high ERS provides an advantage in pool reward distribution",
+        "(share weighting, see pool.rs) and access to premium features of",
         "ENRG Market (v7.0 §16, §30) — `ers_premium_eligible`.",
         "",
         "Seeds: [b\"reputation\", authority.key().as_ref()]"
@@ -7089,56 +7089,56 @@
           {
             "name": "authority",
             "docs": [
-              "Владелец устройства (authority), чей score учитывается."
+              "Device owner (authority) whose score is tracked."
             ],
             "type": "pubkey"
           },
           {
             "name": "score",
             "docs": [
-              "Текущий балл ERS (0..=ERS_MAX_SCORE)."
+              "Current ERS score (0..=ERS_MAX_SCORE)."
             ],
             "type": "u32"
           },
           {
             "name": "updated_at",
             "docs": [
-              "Время последнего обновления."
+              "Time of the last update."
             ],
             "type": "i64"
           },
           {
             "name": "total_energy_wh",
             "docs": [
-              "Суммарная верифицированная энергия (Wh) — вклад в score."
+              "Total verified energy (Wh) — contribution to the score."
             ],
             "type": "u64"
           },
           {
             "name": "first_seen",
             "docs": [
-              "Первое появление (unix ts) — основа расчёта uptime."
+              "First appearance (unix ts) — basis for uptime calculation."
             ],
             "type": "i64"
           },
           {
             "name": "anomaly_count",
             "docs": [
-              "Количество зафиксированных аномалий профиля (v7.0 §27)."
+              "Number of recorded profile anomalies (v7.0 §27)."
             ],
             "type": "u32"
           },
           {
             "name": "percentile",
             "docs": [
-              "Приближённый процентиль сети (0..=100; on-chain аппроксимация)."
+              "Approximate network percentile (0..=100; on-chain approximation)."
             ],
             "type": "u8"
           },
           {
             "name": "bump",
             "docs": [
-              "Bump seed для PDA."
+              "Bump seed for the PDA."
             ],
             "type": "u8"
           }
@@ -7302,14 +7302,14 @@
           {
             "name": "founder_account",
             "docs": [
-              "Founder ATA — куда минтятся founder-токены при launch (премайн)."
+              "Founder ATA — where founder tokens are minted at launch (premine)."
             ],
             "type": "pubkey"
           },
           {
             "name": "founder_minted",
             "docs": [
-              "Одноразовый флаг: 1 после founder-премайна (повторный запрещён)."
+              "One-shot flag: 1 after the founder premine (repeat forbidden)."
             ],
             "type": "u8"
           },

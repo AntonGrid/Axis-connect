@@ -1,22 +1,22 @@
 import { PublicKey } from "@solana/web3.js";
 import type { NetworkConfig, NetworkId } from "./types";
 
-/** Program ID смарт-контракта ENRG (enrg_mvp). Источник: ENRG/Anchor.toml. */
+/** ENRG smart-contract program id (enrg_mvp). Source: ENRG/Anchor.toml. */
 export const ENRG_PROGRAM_ID = new PublicKey(
   "HkuC3FTGAf9ryPqH7fi3RbUHwP4TKFMg5WgHNWm6Vaxb",
 );
 
-/** Десятичные знаки SRC-токена (v7.0 §17). */
+/** SRC token decimals (v7.0 §17). */
 export const SRC_DECIMALS = 9;
 
-// ── Seeds PDA (зеркалируют constants/enrg_mvp, tests/helpers/pda.ts) ──
+// ── PDA seeds (mirror constants/enrg_mvp and tests/helpers/pda.ts) ──
 export const TOKEN_MINT_SEED = "token-mint";
 export const PRODUCER_SEED = "producer";
 export const OWNER_DEVICES_SEED = "owner-devices";
 export const MANIFEST_REGISTRY_SEED = "manifest-registry";
 export const MANIFEST_VERIFICATION_SEED = "manifest-verification";
 
-// ── Системные программы / sysvars ──
+// ── System programs / sysvars ──
 export const SYSTEM_PROGRAM_ID = PublicKey.default; // SystemProgram.programId == 111...
 export const TOKEN_PROGRAM_ID = new PublicKey(
   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
@@ -28,9 +28,9 @@ export const SYSVAR_INSTRUCTIONS_ID = new PublicKey(
   "Sysvar1nstructions1111111111111111111111111",
 );
 
-// ── Локальный HTTP-signer прошивки (Phase 3) ──
+// ── Firmware local HTTP-signer (Phase 3) ──
 export const DEVICE_SIGNER_PORT = 8080;
-/** Таймаут запросов к девайсу по локальной сети. */
+/** Timeout for local-network requests to the device. */
 export const DEVICE_SIGNER_TIMEOUT_MS = 1500;
 
 // ── Сети ──
@@ -63,7 +63,7 @@ export function networkById(id: NetworkId): NetworkConfig {
 
 export const DEFAULT_NETWORK_ID: NetworkId = "devnet";
 
-/** Ключи LocalStorage. */
+/** LocalStorage keys. */
 export const STORAGE_KEYS = {
   wallet: "axis-connect.wallet.v1",
   network: "axis-connect.network.v1",
@@ -71,10 +71,10 @@ export const STORAGE_KEYS = {
   theme: "axis-connect.theme.v1",
 } as const;
 
-/** Префикс ключей истории энергии: axis-connect.energy.v1.<deviceId> */
+/** Energy-history key prefix: axis-connect.energy.v1.<deviceId> */
 export const ENERGY_HISTORY_KEY_PREFIX = "axis-connect.energy.v1.";
-/** Сколько снапшотов энергии хранить на устройство (24ч при периоде 15 мин). */
+/** How many energy snapshots to keep per device (24h at a 15-min period). */
 export const ENERGY_HISTORY_MAX_POINTS = 192;
-/** Период опроса устройства для снапшотов (мс) — если устройство в сети. */
+/** Device polling interval for snapshots (ms) — while the device is online. */
 export const ENERGY_POLL_INTERVAL_MS = 15 * 60 * 1000;
 
