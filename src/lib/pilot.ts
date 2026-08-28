@@ -119,16 +119,23 @@ export async function fetchOracleProofs(
     }>;
   };
   if (!data.ok || !Array.isArray(data.proofs)) return [];
+  // Postgres returns BIGINT columns as strings (node-postgres), SQLite as
+  // numbers — coerce everything so downstream sums (`+`) never string-concat.
   return data.proofs
-    .map((r) => ({
-      deviceId: r.device_id,
-      timestamp: r.ts,
-      verifiedAt: r.ts,
-      energyWh: r.energy_wh,
-      nonce: r.nonce,
-      oracle: "",
-      signature: r.mint_tx ?? "",
-    }))
+    .map((r) => {
+      const ts = Number(r.ts);
+      const energyWh = Number(r.energy_wh);
+      const nonce = Number(r.nonce);
+      return {
+        deviceId: r.device_id,
+        timestamp: ts,
+        verifiedAt: ts,
+        energyWh,
+        nonce,
+        oracle: "",
+        signature: r.mint_tx ?? "",
+      };
+    })
     .sort((a, b) => a.timestamp - b.timestamp);
 }
 

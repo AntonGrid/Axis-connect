@@ -118,4 +118,51 @@ describe("pilot", () => {
     expect(out[0].energyWh).toBe(1);
     expect(out[0].signature).toBe("abc");
   });
+
+  it("coerces Postgres BIGINT strings into numbers (no + concat bugs)", async () => {
+    const { fetchOracleProofs, proofsTodayKwh, proofsChartData, assessProofs } =
+      await import("./pilot");
+    const { PublicKey } = await import("@solana/web3.js");
+    const pubkey = new PublicKey(
+      "Ej2oCfDkNFeFY7hcKHFRxtyHkmYUukbcWZXCqxKvih9b",
+    );
+    const now = Math.floor(Date.now() / 1000);
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        proofs: [
+          {
+            device_id: "0xcbec5afc",
+            ts: String(now - 120),
+            energy_wh: "60",
+            nonce: "10",
+            mint_tx: "tx1",
+            mint_status: "minted",
+          },
+          {
+            device_id: "0xcbec5afc",
+            ts: String(now - 60),
+            energy_wh: "60",
+            nonce: "11",
+            mint_tx: "tx2",
+            mint_status: "minted",
+          },
+        ],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const out = await fetchOracleProofs(pubkey, 5);
+    expect(out).toHaveLength(2);
+    expect(out[0].nonce).toBe(10);
+    expect(out[0].energyWh).toBe(60);
+    expect(out[0].timestamp).toBe(now - 120);
+    // Energy sums must be numeric, never string-concatenated ("60"+"60").
+    expect(out.reduce((a, p) => a + p.energyWh, 0)).toBe(120);
+    // 120 Wh → 0.12 kWh. With the string-concat bug this would be 6.06.
+    const chartKw = proofsChartData(out).reduce((a, b) => a + b.kw, 0);
+    expect(chartKw).toBeCloseTo(0.12, 5);
+    expect(assessProofs(out).metrics.totalEnergyWh).toBe(120);
+    expect(proofsTodayKwh(out)).toBeGreaterThanOrEqual(0);
+  });
 });
