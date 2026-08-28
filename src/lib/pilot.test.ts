@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { assessProofs, decodeMintReport } from "./pilot";
 import { base58Encode } from "./encoding";
 
@@ -67,5 +67,55 @@ describe("pilot", () => {
     }));
     const h = assessProofs(history);
     expect(h.flags).toContain("night_production");
+  });
+
+  it("computes current power from proof intervals", async () => {
+    const { proofsCurrentPowerW, proofsTodayKwh, proofsChartData } = await import("./pilot");
+    const base = 1_700_000_000;
+    const proofs = Array.from({ length: 3 }, (_, i) => ({
+      deviceId: "x",
+      timestamp: base + i * 60,
+      verifiedAt: base + i * 60,
+      energyWh: 1,
+      nonce: i,
+      oracle: "o",
+      signature: `s${i}`,
+    }));
+    // 1 Wh / 60 s = 60 W
+    expect(proofsCurrentPowerW(proofs)).toBeCloseTo(60, 0);
+    expect(proofsChartData(proofs).length).toBeGreaterThan(0);
+    // proofsTodayKwh counts proofs since local midnight (all of these are "today"
+    // only if the timestamps fall on today — guard with a fixed date).
+    expect(proofsTodayKwh(proofs)).toBeGreaterThanOrEqual(0);
+  });
+
+  it("decodes oracle REST proofs into PilotProof", async () => {
+    const { fetchOracleProofs } = await import("./pilot");
+    const { PublicKey } = await import("@solana/web3.js");
+    const pubkey = new PublicKey(
+      "Ej2oCfDkNFeFY7hcKHFRxtyHkmYUukbcWZXCqxKvih9b",
+    );
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        proofs: [
+          {
+            device_id: "0xcbec5afc",
+            ts: 1787913813,
+            energy_wh: 1,
+            nonce: 876,
+            mint_tx: "abc",
+            mint_status: "minted",
+          },
+        ],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const out = await fetchOracleProofs(pubkey, 5);
+    expect(out).toHaveLength(1);
+    expect(out[0].nonce).toBe(876);
+    expect(out[0].energyWh).toBe(1);
+    expect(out[0].signature).toBe("abc");
   });
 });

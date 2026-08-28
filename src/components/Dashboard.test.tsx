@@ -34,6 +34,15 @@ vi.mock("html5-qrcode", () => ({
   },
 }));
 
+// The oracle proof API is network — stub it so tests stay deterministic.
+vi.stubGlobal(
+  "fetch",
+  vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ ok: true, proofs: [] }),
+  }),
+);
+
 const wallet = Keypair.generate();
 
 function stubConnection(): Connection {

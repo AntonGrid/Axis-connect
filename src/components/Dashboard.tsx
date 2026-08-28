@@ -23,6 +23,13 @@ import type { RegisteredDevice } from "../lib/devices";
 import { fetchDeviceSignerInfo } from "../lib/deviceSigner";
 import { ensureSeedData, getEnergyHistory } from "../lib/energyHistory";
 import { getEnergyProducer } from "../lib/enrgTx";
+import {
+  fetchOracleProofs,
+  proofsChartData,
+  proofsCurrentPowerW,
+  proofsTodayKwh,
+} from "../lib/pilot";
+import type { PilotProof } from "../lib/pilot";
 import { ENRG_PROGRAM_ID } from "../config";
 import {
   LOW_SOL_THRESHOLD,
@@ -66,6 +73,7 @@ export default function Dashboard({
   const [devices, setDevices] = useState<RegisteredDevice[]>([]);
   const [producers, setProducers] = useState<Record<string, EnergyProducerData | null>>({});
   const [online, setOnline] = useState<Record<string, boolean>>({});
+  const [oracleProofs, setOracleProofs] = useState<Record<string, PilotProof[]>>({});
   const [solLamports, setSolLamports] = useState<number | null>(null);
   const [srcRaw, setSrcRaw] = useState<bigint | null>(null);
   const [txHistory, setTxHistory] = useState<TxRecord[]>([]);
@@ -86,12 +94,20 @@ export default function Dashboard({
     const load = async () => {
       const prodMap: Record<string, EnergyProducerData | null> = {};
       const onlineMap: Record<string, boolean> = {};
+      const proofsMap: Record<string, PilotProof[]> = {};
       for (const d of devices) {
         prodMap[d.deviceId] = await getEnergyProducer(
           connection,
           ENRG_PROGRAM_ID,
           new PublicKey(d.deviceId),
         );
+        // Live proofs via the public oracle REST API (ADR-0010) — fresh even
+        // when the device is not reachable over the local network.
+        try {
+          proofsMap[d.deviceId] = await fetchOracleProofs(new PublicKey(d.deviceId), 60);
+        } catch {
+          proofsMap[d.deviceId] = [];
+        }
         try {
           const info = await fetchDeviceSignerInfo(new PublicKey(d.deviceId), 1000);
           onlineMap[d.deviceId] = info !== null;
@@ -102,6 +118,7 @@ export default function Dashboard({
       if (!cancelled) {
         setProducers(prodMap);
         setOnline(onlineMap);
+        setOracleProofs(proofsMap);
       }
     };
     void load();
@@ -147,13 +164,23 @@ export default function Dashboard({
   const kwhPerSrc = deriveKwhPerSrc(totalKwh, src);
   const srcKwh = (Number(src) / 1_000_000_000) * kwhPerSrc;
 
-  const currentPowerW = useMemo(
-    () => devices.reduce((acc, d) => acc + getCurrentPowerW(d.deviceId), 0),
-    [devices],
-  );
+  const currentPowerW = useMemo(() => {
+    let sum = 0;
+    for (const d of devices) {
+      const p = oracleProofs[d.deviceId] ?? [];
+      if (p.length > 0) {
+        sum += proofsCurrentPowerW(p);
+      } else {
+        sum += getCurrentPowerW(d.deviceId);
+      }
+    }
+    return sum;
+  }, [devices, oracleProofs]);
 
-  // ── 24h chart (aggregated across devices) ──
+  // ── 24h chart (aggregated across devices): live proofs first ──
   const chartData = useMemo<ChartBucket[]>(() => {
+    const allProofs = devices.flatMap((d) => oracleProofs[d.deviceId] ?? []);
+    if (allProofs.length > 0) return proofsChartData(allProofs);
     const buckets = new Map<number, { sum: number; count: number }>();
     for (const d of devices) {
       for (const p of getEnergyHistory(d.deviceId)) {
@@ -175,7 +202,7 @@ export default function Dashboard({
           kw: Math.round((powerW / 1000) * 100) / 100,
         };
       });
-  }, [devices]);
+  }, [devices, oracleProofs]);
 
   // ── Animations ──
   const totalKwhAnimated = useAnimatedNumber(totalKwh, 1200);
@@ -343,8 +370,15 @@ export default function Dashboard({
           <ul className="flex flex-col gap-2">
             {devices.map((d) => {
               const onlineNow = online[d.deviceId] === true;
-              const todayKwh = getTodayKwh(d.deviceId);
-              const progress = todayProgress(d.deviceId);
+              const proofs = oracleProofs[d.deviceId] ?? [];
+              const todayKwh =
+                proofs.length > 0
+                  ? proofsTodayKwh(proofs)
+                  : getTodayKwh(d.deviceId);
+              const progress =
+                proofs.length > 0
+                  ? Math.min(1, todayKwh / 10)
+                  : todayProgress(d.deviceId);
               return (
                 <li key={d.deviceId}>
                   <button

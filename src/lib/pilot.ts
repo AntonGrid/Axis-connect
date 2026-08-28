@@ -9,7 +9,7 @@
  * reports — works even when the ESP32 counter is powered off.
  */
 import type { Connection, PublicKey } from "@solana/web3.js";
-import { ENRG_PROGRAM_ID } from "../config";
+import { ENRG_PROGRAM_ID, ORACLE_URL } from "../config";
 import { producerPdaSync } from "./enrgTx";
 import { base58Decode, base58Encode, bytesToHex } from "./encoding";
 
@@ -96,6 +96,107 @@ export async function fetchProofHistory(
   }
   out.sort((a, b) => a.timestamp - b.timestamp);
   return out.slice(-limit);
+}
+
+/** Proofs from the public oracle REST API (ADR-0010 data bridge). */
+export async function fetchOracleProofs(
+  devicePubkey: PublicKey,
+  limit = 30,
+): Promise<PilotProof[]> {
+  const deviceHex = bytesToHex(devicePubkey.toBytes());
+  const url = `${ORACLE_URL}/api/v1/proofs?device_id=0x${deviceHex}&limit=${limit}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`oracle proofs: HTTP ${resp.status}`);
+  const data = (await resp.json()) as {
+    ok: boolean;
+    proofs?: Array<{
+      device_id: string;
+      ts: number;
+      energy_wh: number;
+      nonce: number;
+      mint_tx: string | null;
+      mint_status: string;
+    }>;
+  };
+  if (!data.ok || !Array.isArray(data.proofs)) return [];
+  return data.proofs
+    .map((r) => ({
+      deviceId: r.device_id,
+      timestamp: r.ts,
+      verifiedAt: r.ts,
+      energyWh: r.energy_wh,
+      nonce: r.nonce,
+      oracle: "",
+      signature: r.mint_tx ?? "",
+    }))
+    .sort((a, b) => a.timestamp - b.timestamp);
+}
+
+/**
+ * Oracle-first, chain-fallback proof history. The oracle REST endpoint is the
+ * freshest source (persisted at submission time); when it is unreachable or
+ * empty, the proof stream is reconstructed from on-chain mint transactions.
+ */
+export async function fetchPilotProofs(
+  connection: Connection,
+  devicePubkey: PublicKey,
+  limit = 30,
+): Promise<PilotProof[]> {
+  try {
+    const oracle = await fetchOracleProofs(devicePubkey, limit);
+    if (oracle.length > 0) return oracle;
+  } catch {
+    /* fall through to the chain */
+  }
+  return fetchProofHistory(connection, devicePubkey, limit);
+}
+
+/** Today's production (kWh) from proofs since local midnight. */
+export function proofsTodayKwh(proofs: PilotProof[]): number {
+  if (proofs.length === 0) return 0;
+  const now = Date.now();
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+  let wh = 0;
+  for (const p of proofs) {
+    const tsMs = p.timestamp * 1000;
+    if (tsMs >= dayStart.getTime() && tsMs <= now) wh += p.energyWh;
+  }
+  return wh / 1000;
+}
+
+/** Current power (W) from the last proof interval (1 Wh / 60 s ≈ 60 W). */
+export function proofsCurrentPowerW(proofs: PilotProof[]): number {
+  if (proofs.length === 0) return 0;
+  if (proofs.length === 1) {
+    // Single proof: assume the nominal 1 Wh per 60 s interval.
+    return proofs[0].energyWh * (3600 / 60);
+  }
+  const a = proofs[proofs.length - 2];
+  const b = proofs[proofs.length - 1];
+  const dt = b.timestamp - a.timestamp;
+  if (dt <= 0) return 0;
+  return (b.energyWh / dt) * 3600;
+}
+
+/**
+ * 24h chart buckets from proofs (energyWh per hour → kW), sorted by hour.
+ */
+export function proofsChartData(proofs: PilotProof[]): { label: string; kw: number }[] {
+  const buckets = new Map<string, { wh: number }>();
+  for (const p of proofs) {
+    const d = new Date(p.timestamp * 1000);
+    const key = `${String(d.getHours()).padStart(2, "0")}:00`;
+    const b = buckets.get(key) ?? { wh: 0 };
+    b.wh += p.energyWh;
+    buckets.set(key, b);
+  }
+  return [...buckets.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([label, b]) => ({
+      label,
+      kw: Math.round((b.wh / 1000) * 100) / 100,
+    }));
 }
 
 /** Lightweight plausibility assessment (advisory; never gates proofs). */

@@ -6,7 +6,7 @@ import { getEnergyProducer, producerPdaSync } from "../lib/enrgTx";
 import { fetchDeviceSignerInfo } from "../lib/deviceSigner";
 import { ensureSeedData, getEnergyHistory } from "../lib/energyHistory";
 import { removeRegisteredDevice } from "../lib/devices";
-import { assessProofs, fetchProofHistory } from "../lib/pilot";
+import { assessProofs, fetchPilotProofs } from "../lib/pilot";
 import type { PilotProof } from "../lib/pilot";
 
 interface Props {
@@ -65,7 +65,7 @@ export default function DeviceScreen({ deviceId, connection, onBack }: Props) {
     let cancelled = false;
     const load = async () => {
       try {
-        const p = await fetchProofHistory(connection, pubkey, 20);
+        const p = await fetchPilotProofs(connection, pubkey, 20);
         if (cancelled) return;
         setProofs(p);
         setProofsError(null);
