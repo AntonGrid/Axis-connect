@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Keypair } from "@solana/web3.js";
-import { DEFAULT_NETWORK_ID, NETWORKS, STORAGE_KEYS, networkById } from "./config";
+import { DEFAULT_NETWORK_ID, NETWORKS, PILOT_DEVICE_ID, PILOT_DEVICE_LABEL, STORAGE_KEYS, networkById } from "./config";
 import type { AppScreen, NetworkConfig, QrScanResult, ThemeMode } from "./types";
 import { deleteWallet, loadWallet } from "./lib/wallet";
 import { createConnection } from "./lib/solana";
+import { addRegisteredDevice, listRegisteredDevices } from "./lib/devices";
 import { getTheme } from "./lib/theme";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./components/Dashboard";
@@ -43,6 +44,18 @@ export default function App() {
     setWallet(kp);
     setScreen("dashboard");
   }, []);
+
+  // "Plug & play": on first launch, attach the live DePIN pilot device so the
+  // dashboard shows a real, working ESP32 (proofs minted on devnet) with zero
+  // setup — no scanning, no registration ceremony.
+  const ensurePilotDevice = useCallback(() => {
+    if (listRegisteredDevices().some((d) => d.deviceId === PILOT_DEVICE_ID)) return;
+    addRegisteredDevice(PILOT_DEVICE_ID, PILOT_DEVICE_LABEL);
+  }, []);
+
+  useEffect(() => {
+    if (wallet) ensurePilotDevice();
+  }, [wallet, ensurePilotDevice]);
 
   const handleWalletDeleted = useCallback(() => {
     deleteWallet();

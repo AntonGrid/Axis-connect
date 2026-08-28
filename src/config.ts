@@ -78,3 +78,13 @@ export const ENERGY_HISTORY_MAX_POINTS = 192;
 /** Device polling interval for snapshots (ms) — while the device is online. */
 export const ENERGY_POLL_INTERVAL_MS = 15 * 60 * 1000;
 
+// ── DePIN pilot (ADR-0010): the live ESP32 device on devnet ──
+/** Base58 public key of the pilot ESP32 device (0xcbec5afc…). */
+export const PILOT_DEVICE_ID =
+  "Ej2oCfDkNFeFY7hcKHFRxtyHkmYUukbcWZXCqxKvih9b";
+/** Human-friendly label shown in the UI. */
+export const PILOT_DEVICE_LABEL = "ESP32 Pilot";
+/** Public oracle (proof history + attestations, ADR-0010 data bridge). */
+export const ORACLE_URL = "https://enrg-oracle.onrender.com";
+
+

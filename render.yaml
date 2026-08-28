@@ -1,0 +1,17 @@
+# Axis-connect — Render Static Site (Blueprint).
+# Deploy: push to main → Render creates the service from this file,
+# or Dashboard → New → Blueprint.
+services:
+  - type: web
+    name: axis-connect
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
