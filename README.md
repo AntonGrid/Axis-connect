@@ -3,6 +3,22 @@
 The client PWA of the **Axis/ENRG** ecosystem: "plug in a device → scan the QR →
 everything works". A standalone project, not part of the `ENRG` modules.
 
+## Ecosystem
+
+Axis Connect is **Layer 4** of the Axis ecosystem — the "plug & play" PWA
+interface. One map of all layers:
+[**Ecosystem map**](https://github.com/AntonGrid/Axis-protocol/blob/main/docs/ECOSYSTEM.md) ·
+[**Constitution**](https://github.com/AntonGrid/Axis-protocol/blob/main/docs/CONSTITUTION.md) ·
+[**Glossary**](https://github.com/AntonGrid/Axis-protocol/blob/main/docs/GLOSSARY.md).
+
+| Layer | Repo |
+|---|---|
+| L0 Standard | [Axis-protocol](https://github.com/AntonGrid/Axis-protocol) |
+| L1 Reference implementation | [Axis-core](https://github.com/AntonGrid/Axis-core) |
+| L2 Domain profile (energy) | [ENRG](https://github.com/AntonGrid/ENRG) |
+| L3 Intelligence | [ENRG-AI](https://github.com/AntonGrid/ENRG-AI) |
+| **L4 Interfaces** | [enrg-landing](https://github.com/AntonGrid/enrg-landing) · **Axis-connect (this repo)** |
+
 ## Features
 
 - **Screen 1 — Onboarding**: a non-custodial Solana wallet (Ed25519 Keypair,
