@@ -1,17 +1,19 @@
 import { useState } from "react";
-import type { Keypair } from "@solana/web3.js";
 import type { NetworkConfig, ThemeMode } from "../types";
 import { exportSecretBase58 } from "../lib/wallet";
 import { toggleTheme } from "../lib/theme";
+import { hasInjectedWallet, walletPublicKey, type WalletLike } from "../lib/walletProvider";
 
 interface Props {
-  wallet: Keypair;
+  wallet: WalletLike;
   networks: NetworkConfig[];
   network: NetworkConfig;
   theme: ThemeMode;
   onNetworkChange: (id: NetworkConfig["id"]) => void;
   onThemeChange: (mode: ThemeMode) => void;
   onDeleteWallet: () => void;
+  /** P2-3: connect the injected browser wallet (Phantom/Solflare). */
+  onConnectInjected: () => Promise<string | null>;
   onBack: () => void;
 }
 
@@ -23,19 +25,36 @@ export default function Settings({
   onNetworkChange,
   onThemeChange,
   onDeleteWallet,
+  onConnectInjected,
   onBack,
 }: Props) {
   const [showSecret, setShowSecret] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [connectError, setConnectError] = useState(false);
+
+  const injectedAvailable = hasInjectedWallet();
+  const isInjected = wallet.kind === "injected";
 
   const copyAddress = async () => {
     try {
-      await navigator.clipboard.writeText(wallet.publicKey.toBase58());
+      await navigator.clipboard.writeText(walletPublicKey(wallet).toBase58());
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
       {/* clipboard unavailable */}
+    }
+  };
+
+  const handleConnectInjected = async () => {
+    setConnecting(true);
+    setConnectError(false);
+    try {
+      const pk = await onConnectInjected();
+      if (!pk) setConnectError(true);
+    } finally {
+      setConnecting(false);
     }
   };
   return (
@@ -55,7 +74,7 @@ export default function Settings({
       <div className="rounded-2xl border border-edge bg-panel p-4">
         <p className="text-xs uppercase tracking-wide text-mut">Wallet address</p>
         <div className="mt-2 flex items-center gap-2">
-          <span className="break-all font-mono text-xs text-ink">{wallet.publicKey.toBase58()}</span>
+          <span className="break-all font-mono text-xs text-ink">{walletPublicKey(wallet).toBase58()}</span>
           <button
             onClick={copyAddress}
             className="shrink-0 rounded-md border border-edge px-2 py-1 text-xs text-mut transition hover:bg-soft"
@@ -63,6 +82,35 @@ export default function Settings({
             {copied ? "✓" : "copy"}
           </button>
         </div>
+        {isInjected && (
+          <p className="mt-1 text-[11px] text-axis-accent">Signed by the browser wallet extension</p>
+        )}
+      </div>
+
+      {/* Browser wallet (P2-3) */}
+      <div className="rounded-2xl border border-edge bg-panel p-4">
+        <p className="text-xs uppercase tracking-wide text-mut">Browser wallet</p>
+        {isInjected ? (
+          <p className="mt-2 text-xs text-mut">Connected — transactions are signed by the extension.</p>
+        ) : injectedAvailable ? (
+          <>
+            <button
+              onClick={handleConnectInjected}
+              disabled={connecting}
+              className="mt-3 w-full rounded-xl border border-axis-accent/60 px-4 py-2 text-sm font-medium text-axis-accent transition hover:bg-axis-accent/10 disabled:opacity-50"
+            >
+              {connecting ? "Connecting…" : "Connect Phantom / Solflare"}
+            </button>
+            {connectError && (
+              <p className="mt-2 text-[11px] text-axis-danger">Connection failed or was cancelled.</p>
+            )}
+          </>
+        ) : (
+          <p className="mt-2 text-[11px] text-subtle">
+            No wallet extension detected. Install Phantom or Solflare to sign with the extension
+            instead of a local key.
+          </p>
+        )}
       </div>
 
       {/* Network */}
@@ -103,27 +151,29 @@ export default function Settings({
           </button>
         </div>
       </div>
-      {/* Export private key */}
-      <div className="rounded-2xl border border-edge bg-panel p-4">
-        <p className="text-xs uppercase tracking-wide text-mut">Private key</p>
-        <button
-          onClick={() => setShowSecret((v) => !v)}
-          className="mt-3 w-full rounded-xl border border-edge px-4 py-2 text-sm text-mut transition hover:bg-soft"
-        >
-          {showSecret ? "Hide key" : "Export private key"}
-        </button>
-        {showSecret && (
-          <div className="mt-2 rounded-xl border border-axis-warn/40 bg-soft p-3">
-            <p className="text-[11px] font-medium text-axis-warn">
-              ⚠️ The key grants full access to your funds. Do not share it and do not store
-              it in plain sight.
-            </p>
-            <p className="mt-2 break-all font-mono text-[10px] text-ink">
-              {exportSecretBase58(wallet)}
-            </p>
-          </div>
-        )}
-      </div>
+      {/* Export private key — only meaningful for the local (localStorage) wallet */}
+      {!isInjected && (
+        <div className="rounded-2xl border border-edge bg-panel p-4">
+          <p className="text-xs uppercase tracking-wide text-mut">Private key</p>
+          <button
+            onClick={() => setShowSecret((v) => !v)}
+            className="mt-3 w-full rounded-xl border border-edge px-4 py-2 text-sm text-mut transition hover:bg-soft"
+          >
+            {showSecret ? "Hide key" : "Export private key"}
+          </button>
+          {showSecret && (
+            <div className="mt-2 rounded-xl border border-axis-warn/40 bg-soft p-3">
+              <p className="text-[11px] font-medium text-axis-warn">
+                ⚠️ The key grants full access to your funds. Do not share it and do not store
+                it in plain sight.
+              </p>
+              <p className="mt-2 break-all font-mono text-[10px] text-ink">
+                {wallet.kind === "local" ? exportSecretBase58(wallet.keypair) : ""}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Danger zone */}
       <div className="rounded-2xl border border-axis-danger/40 bg-panel p-4">

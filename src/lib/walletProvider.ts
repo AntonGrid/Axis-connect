@@ -22,6 +22,18 @@ export interface InjectedWalletLike {
   signAndSendTransaction?: (tx: unknown) => Promise<{ signature: string }>;
 }
 
+/**
+ * A wallet the app can transact with: either the local (localStorage) keypair
+ * or an injected browser-wallet extension (P2-3).
+ */
+export type WalletLike =
+  | { kind: "local"; keypair: import("@solana/web3.js").Keypair }
+  | { kind: "injected"; provider: InjectedWalletLike; publicKey: import("@solana/web3.js").PublicKey };
+
+export function walletPublicKey(w: WalletLike): import("@solana/web3.js").PublicKey {
+  return w.kind === "local" ? w.keypair.publicKey : w.publicKey;
+}
+
 export type WalletProviderKind = "phantom" | "solflare" | "injected" | "none";
 
 /** Returns the injected wallet adapter if any is present in the window. */

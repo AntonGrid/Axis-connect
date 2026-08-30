@@ -11,6 +11,7 @@ import enrgIdl from "../data/enrg_mvp.json";
 import { ENRG_PROGRAM_ID, OWNER_DEVICES_SEED, PRODUCER_SEED, SYSVAR_INSTRUCTIONS_ID } from "../config";
 import type { DeviceState, EnergyProducerData, RegistrationOutcome, RegistrationStepId, RegistrationStepResult } from "../types";
 import { ascii, concatBytes, i64le, u64le } from "./borsh";
+import { walletPublicKey } from "./walletProvider";
 
 // ════════════════════════════════════════════════════════════════════
 //  IDL typing (enrg_mvp, copied from ENRG/target/idl/enrg_mvp.json)
@@ -340,6 +341,59 @@ export async function sendUserTransaction(
   await connection.confirmTransaction(signature, "confirmed");
   return signature;
 }
+
+// ════════════════════════════════════════════════════════════════════
+// P2-3 (audit 2026-08-30): transaction signing via an injected wallet
+// (Phantom/Solflare) instead of the localStorage keypair. The private key
+// never touches the page when the extension signs.
+// ════════════════════════════════════════════════════════════════════
+
+async function signWithProvider(
+  provider: import("./walletProvider").InjectedWalletLike,
+  tx: Transaction,
+): Promise<Transaction> {
+  if (typeof provider.signTransaction === "function") {
+    const signed = (await provider.signTransaction(tx)) as Transaction;
+    if (!signed) throw new Error("wallet returned no signature");
+    return signed;
+  }
+  // Legacy wallets expose signAllTransactions instead.
+  const providerAny = provider as unknown as { signAllTransactions?: (txs: Transaction[]) => Promise<Transaction[]> };
+  if (typeof providerAny.signAllTransactions === "function") {
+    const [signed] = await providerAny.signAllTransactions([tx]);
+    return signed;
+  }
+  throw new Error("wallet provider does not support transaction signing");
+}
+
+export async function sendUserTransactionLike(
+  connection: Connection,
+  wallet: import("./walletProvider").WalletLike,
+  instructions: TransactionInstruction[],
+): Promise<string> {
+  const tx = new Transaction();
+  tx.add(...instructions);
+
+  if (wallet.kind === "local") {
+    return connection.sendTransaction(tx, [wallet.keypair], {
+      skipPreflight: false,
+      preflightCommitment: "confirmed",
+    });
+  }
+
+  // Injected provider: it pays the fee and signs; we serialize and broadcast.
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+  tx.recentBlockhash = blockhash;
+  tx.lastValidBlockHeight = lastValidBlockHeight;
+  tx.feePayer = wallet.publicKey;
+
+  const signed = await signWithProvider(wallet.provider, tx);
+  const signature = await connection.sendRawTransaction(signed.serialize(), {
+    preflightCommitment: "confirmed",
+  });
+  await connection.confirmTransaction(signature, "confirmed");
+  return signature;
+}
 // ════════════════════════════════════════════════════════════════════
 //  Full registration-flow orchestration (ADR-0005)
 // ════════════════════════════════════════════════════════════════════
@@ -362,7 +416,7 @@ function nowTs(): bigint {
 export interface RegisterDeviceFlowParams {
   connection: Connection;
   programId?: PublicKey;
-  wallet: Keypair;
+  wallet: import("./walletProvider").WalletLike;
   deviceId: PublicKey;
   signRegister: (message: Uint8Array) => Promise<Uint8Array>;
   signClaim: (message: Uint8Array) => Promise<Uint8Array>;
@@ -388,8 +442,8 @@ export async function registerDeviceFlow(
   try {
     const status = await getDeviceStatus(params.connection, programId, params.deviceId);
     const producer = producerPdaSync(programId, params.deviceId);
-    const ownerDevices = ownerDevicesPdaSync(programId, params.wallet.publicKey);
-    const walletPub = params.wallet.publicKey;
+    const ownerDevices = ownerDevicesPdaSync(programId, walletPublicKey(params.wallet));
+    const walletPub = walletPublicKey(params.wallet);
 
     if (status.exists && status.owner && status.owner !== walletPub.toBase58()) {
       throw new Error(
@@ -413,7 +467,7 @@ export async function registerDeviceFlow(
         { operator: walletPub, producer, deviceId: params.deviceId },
         { deviceSignature: signature, registerTimestamp: ts },
       );
-      const txid = await sendUserTransaction(params.connection, params.wallet, [
+      const txid = await sendUserTransactionLike(params.connection, params.wallet, [
         buildEd25519PrecompileIx(params.deviceId, message, signature),
         ix,
       ]);
@@ -433,7 +487,7 @@ export async function registerDeviceFlow(
         { authority: walletPub, producer, ownerDevices },
         { deviceSignature: signature, claimNonce: nonce, claimTimestamp: ts },
       );
-      const txid = await sendUserTransaction(params.connection, params.wallet, [
+      const txid = await sendUserTransactionLike(params.connection, params.wallet, [
         buildEd25519PrecompileIx(params.deviceId, message, signature),
         ix,
       ]);
@@ -444,7 +498,7 @@ export async function registerDeviceFlow(
 
     // ── Step 3: provision (owner-gated) ──
     if (needProvision) {
-      const txid = await sendUserTransaction(params.connection, params.wallet, [
+      const txid = await sendUserTransactionLike(params.connection, params.wallet, [
         buildProvisionDeviceIx(programId, { authority: walletPub, producer }),
       ]);
       set("provision", { status: "ok", txid });
@@ -454,7 +508,7 @@ export async function registerDeviceFlow(
 
     // ── Step 4: activate (owner-gated) ──
     if (needActivate) {
-      const txid = await sendUserTransaction(params.connection, params.wallet, [
+      const txid = await sendUserTransactionLike(params.connection, params.wallet, [
         buildActivateDeviceIx(programId, { authority: walletPub, producer, ownerDevices }),
       ]);
       set("activate", { status: "ok", txid });

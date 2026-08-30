@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Keypair } from "@solana/web3.js";
+import { PublicKey, type Keypair } from "@solana/web3.js";
 import { DEFAULT_NETWORK_ID, NETWORKS, PILOT_DEVICE_ID, PILOT_DEVICE_LABEL, STORAGE_KEYS, networkById } from "./config";
 import type { AppScreen, NetworkConfig, QrScanResult, ThemeMode } from "./types";
 import { deleteWallet, loadWallet } from "./lib/wallet";
+import {
+  connectInjectedWallet,
+  detectInjectedWallet,
+  walletPublicKey,
+  type WalletLike,
+} from "./lib/walletProvider";
 import { createConnection } from "./lib/solana";
 import { addRegisteredDevice, listRegisteredDevices } from "./lib/devices";
 import { getTheme } from "./lib/theme";
@@ -14,7 +20,10 @@ import DeviceScreen from "./components/DeviceScreen";
 import Settings from "./components/Settings";
 
 export default function App() {
-  const [wallet, setWallet] = useState<Keypair | null>(() => loadWallet());
+  const [wallet, setWallet] = useState<WalletLike | null>(() => {
+    const kp = loadWallet();
+    return kp ? { kind: "local", keypair: kp } : null;
+  });
   const [network, setNetwork] = useState<NetworkConfig>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.network);
@@ -41,8 +50,24 @@ export default function App() {
   }, [theme]);
 
   const handleWalletCreated = useCallback((kp: Keypair) => {
-    setWallet(kp);
+    setWallet({ kind: "local", keypair: kp });
     setScreen("dashboard");
+  }, []);
+
+  // P2-3: use an injected browser wallet (Phantom/Solflare). The private key
+  // stays inside the extension; the app only keeps the provider + pubkey.
+  const handleInjectedConnected = useCallback(async (): Promise<string | null> => {
+    const provider = detectInjectedWallet();
+    if (!provider) return null;
+    const pk = await connectInjectedWallet(provider);
+    if (!pk) return null;
+    setWallet({
+      kind: "injected",
+      provider,
+      publicKey: new PublicKey(pk),
+    });
+    setScreen("dashboard");
+    return pk;
   }, []);
 
   // "Plug & play": on first launch, attach the live DePIN pilot device so the
@@ -89,7 +114,7 @@ export default function App() {
       <main className="flex-1 overflow-y-auto">
         {screen === "dashboard" && (
           <Dashboard
-            pubkey={wallet.publicKey}
+            pubkey={walletPublicKey(wallet)}
             connection={connection}
             network={network}
             networks={NETWORKS}
@@ -128,6 +153,7 @@ export default function App() {
             onNetworkChange={handleNetworkChange}
             onThemeChange={setTheme}
             onDeleteWallet={handleWalletDeleted}
+            onConnectInjected={handleInjectedConnected}
             onBack={() => setScreen("dashboard")}
           />
         )}

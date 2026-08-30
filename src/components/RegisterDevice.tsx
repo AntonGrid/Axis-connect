@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Connection, Keypair } from "@solana/web3.js";
+import type { Connection } from "@solana/web3.js";
 import type { NetworkConfig, QrScanResult, RegistrationOutcome, RegistrationStepResult } from "../types";
 import { ENRG_PROGRAM_ID } from "../config";
 import {
@@ -14,9 +14,10 @@ import {
   ownerDevicesPdaSync,
   producerPdaSync,
   registerDeviceFlow,
-  sendUserTransaction,
+  sendUserTransactionLike,
 } from "../lib/enrgTx";
 import type { DeviceStatus } from "../lib/enrgTx";
+import { walletPublicKey, type WalletLike } from "../lib/walletProvider";
 import { createDeviceSignerProvider, fetchDeviceSignerInfo } from "../lib/deviceSigner";
 import type { DeviceSignerInfo } from "../lib/deviceSigner";
 import { bytesToHex, hexToBytes } from "../lib/encoding";
@@ -24,7 +25,7 @@ import { addRegisteredDevice } from "../lib/devices";
 
 interface Props {
   device: QrScanResult | null;
-  wallet: Keypair;
+  wallet: WalletLike;
   connection: Connection;
   network: NetworkConfig;
   onBack: () => void;
@@ -89,7 +90,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
 
   const deviceId = device.deviceId;
   const producer = producerPdaSync(ENRG_PROGRAM_ID, deviceId);
-  const ownerDevices = ownerDevicesPdaSync(ENRG_PROGRAM_ID, wallet.publicKey);
+  const ownerDevices = ownerDevicesPdaSync(ENRG_PROGRAM_ID, walletPublicKey(wallet));
 
   const findDevice = async () => {
     setChecking(true);
@@ -147,7 +148,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
         const nonce = 1n;
         msgs.push({
           kind: "claim",
-          hex: bytesToHex(deviceClaimMessage(deviceId, wallet.publicKey, nonce, ts)),
+          hex: bytesToHex(deviceClaimMessage(deviceId, walletPublicKey(wallet), nonce, ts)),
           ts: ts.toString(),
           nonce: nonce.toString(),
         });
@@ -190,10 +191,10 @@ export default function RegisterDevice({ device, wallet, connection, network, on
         const msg = deviceRegisterMessage(deviceId, ts);
         const ix = buildRegisterDeviceIx(
           ENRG_PROGRAM_ID,
-          { operator: wallet.publicKey, producer, deviceId },
+          { operator: walletPublicKey(wallet), producer, deviceId },
           { deviceSignature: sig, registerTimestamp: ts },
         );
-        const txid = await sendUserTransaction(connection, wallet, [
+        const txid = await sendUserTransactionLike(connection, wallet, [
           buildEd25519PrecompileIx(deviceId, msg, sig),
           ix,
         ]);
@@ -206,13 +207,13 @@ export default function RegisterDevice({ device, wallet, connection, network, on
         const sig = hexToBytes(manualSigs.claim ?? "");
         if (sig.length !== 64) throw new Error("Enter a claim hex signature (64 bytes)");
         const nonce = BigInt(manualMsgs.find((m) => m.kind === "claim")?.nonce ?? "1");
-        const msg = deviceClaimMessage(deviceId, wallet.publicKey, nonce, ts);
+        const msg = deviceClaimMessage(deviceId, walletPublicKey(wallet), nonce, ts);
         const ix = buildClaimDeviceIx(
           ENRG_PROGRAM_ID,
-          { authority: wallet.publicKey, producer, ownerDevices },
+          { authority: walletPublicKey(wallet), producer, ownerDevices },
           { deviceSignature: sig, claimNonce: nonce, claimTimestamp: ts },
         );
-        const txid = await sendUserTransaction(connection, wallet, [
+        const txid = await sendUserTransactionLike(connection, wallet, [
           buildEd25519PrecompileIx(deviceId, msg, sig),
           ix,
         ]);
@@ -223,16 +224,16 @@ export default function RegisterDevice({ device, wallet, connection, network, on
 
       // owner-gated steps do not require device signatures.
       if (needRegister || needClaim || status?.state === "Claimed") {
-        const txid = await sendUserTransaction(connection, wallet, [
-          buildProvisionDeviceIx(ENRG_PROGRAM_ID, { authority: wallet.publicKey, producer }),
+        const txid = await sendUserTransactionLike(connection, wallet, [
+          buildProvisionDeviceIx(ENRG_PROGRAM_ID, { authority: walletPublicKey(wallet), producer }),
         ]);
         set("provision", { status: "ok", txid });
       } else {
         set("provision", { status: "skip" });
       }
-      const txid = await sendUserTransaction(connection, wallet, [
+      const txid = await sendUserTransactionLike(connection, wallet, [
         buildActivateDeviceIx(ENRG_PROGRAM_ID, {
-          authority: wallet.publicKey,
+          authority: walletPublicKey(wallet),
           producer,
           ownerDevices,
         }),
@@ -277,7 +278,7 @@ export default function RegisterDevice({ device, wallet, connection, network, on
       {status && (
         <div className="rounded-xl border border-edge bg-panel px-4 py-2 text-xs text-mut">
           On-chain status: <span className="font-semibold text-white">{status.state}</span>
-          {status.owner && status.owner !== wallet.publicKey.toBase58() && (
+          {status.owner && status.owner !== walletPublicKey(wallet).toBase58() && (
             <span className="mt-1 block text-axis-danger">
               Owner: {status.owner.slice(0, 8)}… — the device is bound to another wallet
             </span>
