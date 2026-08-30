@@ -130,7 +130,12 @@ async function registerDevice(page: Page) {
   });
   await page.getByRole("button", { name: "To dashboard" }).click();
   await expect(page.getByRole("heading", { name: "Devices" })).toBeVisible();
-  await expect(page.getByText(new RegExp(`ESP32-`))).toBeVisible();
+  // The dashboard may also auto-attach the live pilot device (ADR-0010 pilot
+  // auto-attach), so target the specific registered device by its name suffix
+  // (deviceName() = `ESP32-${id.slice(-4).toUpperCase()}`, Dashboard.tsx).
+  await expect(
+    page.getByText(new RegExp(`ESP32-${DEVICE_ID.slice(-4).toUpperCase()}`)),
+  ).toBeVisible();
 }
 
 test("Create wallet → scan QR → register the device", async ({ page }) => {
