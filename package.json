@@ -16,7 +16,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "preview": "vite preview",
-    "sync:idl": "cp ../ENRG/target/idl/enrg_mvp.json src/data/enrg_mvp.json",
+    "sync:idl": "cp ../ENRG/idls/enrg_mvp.json src/data/enrg_mvp.json",
     "smoke": "vite build --config scripts/vite.smoke.config.ts && node /tmp/axis-smoke-out/smoke.cjs",
     "generate:icons": "bash scripts/generate-icons.sh"
   },

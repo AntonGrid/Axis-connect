@@ -14,7 +14,9 @@ import { ascii, concatBytes, i64le, u64le } from "./borsh";
 import { walletPublicKey } from "./walletProvider";
 
 // ════════════════════════════════════════════════════════════════════
-//  IDL typing (enrg_mvp, copied from ENRG/target/idl/enrg_mvp.json)
+//  IDL typing (enrg_mvp — canonical copy of ENRG/idls/enrg_mvp.json)
+//  Refresh with `npm run sync:idl`; `src/lib/idlDrift.test.ts` fails when this copy
+//  drifts from the ENRG repository.
 // ════════════════════════════════════════════════════════════════════
 
 interface IdlAccountMeta {

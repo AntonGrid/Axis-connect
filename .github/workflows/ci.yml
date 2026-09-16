@@ -20,7 +20,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check out the canonical program IDL (ENRG)
+        # `src/data/enrg_mvp.json` is a copy of `ENRG/idls/enrg_mvp.json`, and the app
+        # builds instructions from it (account order + discriminators come FROM the
+        # IDL). ENRG is public, so the default token can read it. Without this step
+        # the IDL drift guard (`src/lib/idlDrift.test.ts`) skips instead of failing.
+        uses: actions/checkout@v4
+        with:
+          repository: AntonGrid/ENRG
+          path: ENRG
+          sparse-checkout: idls
+
       - name: Run unit/component tests
+        env:
+          ENRG_IDL_PATH: ${{ github.workspace }}/ENRG/idls/enrg_mvp.json
         run: npm test
 
       - name: Build
